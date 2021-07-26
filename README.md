@@ -13,6 +13,7 @@ Social fabric neural network visualization
 ### Three.js
 - [x] [Level of Detail](https://threejs.org/examples/webgl_lod.html)
 - [x] [Camera panning objects in space](https://threejs.org/examples/#webgl_camera)
+- [ ] [Anvaka's very cool graph visualizations](https://anvaka.github.io/pm/#/?_k=rn1q6d)
 
 ### TensorSpace
 - [x] [TensorSpace](https://github.com/tensorspace-team/tensorspace): TensorSpace is a neural network 3D visualization framework built using TensorFlow.js, Three.js and Tween.js. TensorSpace provides Keras-like APIs to build deep learning layers, load pre-trained models, and generate a 3D visualization in the browser.
