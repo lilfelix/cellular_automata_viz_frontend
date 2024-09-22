@@ -3,28 +3,36 @@ Social fabric neural network visualization
 
 ## Proto
 
-
 [See docs for unintuitive use of `js_out`](https://github.com/protocolbuffers/protobuf-javascript?tab=readme-ov-file#the---js_out-flag)
 ```bash
 export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
 protoc --js_out=$PWD/src/proto/generated --proto_path=$PWD/src/proto/ $PWD/src/proto/sim_server.proto
 ``` 
-with gRPC services:
+
+Run the following command to generate the proto messages and the gRPC service client stub from your .proto definitions:
 ```bash
 export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
-protoc --js_out=import_style=commonjs:$PWD/src/proto/generated \
-    --proto_path=$PWD/src/proto/ $PWD/src/proto/sim_server.proto \
-    --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$PWD/src/proto/generated
+protoc -I=$PWD/src/proto/ \
+  --js_out=import_style=commonjs:$PWD/src/proto/generated \
+  --grpc-web_out=import_style=typescript,mode=grpcweb:$PWD/src/proto/generated \
+  $PWD/src/proto/sim_server.proto
 ``` 
 
 ## gRPC
 
 Use [grpc-web](https://github.com/grpc/grpc-web) via `npm i grpc-web`.
-It's a JavaScript implementation of gRPC for browser clients. Intallstion instructions [here](https://github.com/grpc/grpc-web?tab=readme-ov-file#code-generator-plugins)
+It's a JavaScript implementation of gRPC for browser clients. Intallstion instructions [here](https://github.com/grpc/grpc-web?tab=readme-ov-file#code-generator-plugins). It also has experimental [Typescript support](https://github.com/grpc/grpc-web/tree/master/net/grpc/gateway/examples/echo/ts-example)
 
 
 This is server side:
 `@grpc/grpc-js` from https://github.com/grpc/grpc-node
+
+
+## Start a simulation
+
+```
+# Generate a rule
+RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 
 ## To read
 

@@ -1,28 +1,29 @@
-import * as grpc from '@grpc/grpc-js';
-import * as protoLoader from '@grpc/proto-loader';
-import { ProtoGrpcType } from './proto/service';
-import { ExampleServiceClient } from './proto/example/ExampleService';
+import * as grpcWeb from 'grpc-web';
+import { StateServiceClient } from './proto/generated/Sim_serverServiceClientPb';
+import { StartSimulationRequest, SimulationResultResponse, InitializeRequest, GridDimensions, StepRequest } from './proto/generated/sim_server_pb';
 
-const PROTO_PATH = __dirname + '/proto/service.proto';
+const stateService = new StateServiceClient('http://localhost:50051', null, null);
 
-const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
-  keepCase: true,
-  longs: String,
-  enums: String,
-  defaults: true,
-  oneofs: true,
-});
+const request = new StartSimulationRequest();
 
-const grpcObject = (grpc.loadPackageDefinition(packageDefinition) as unknown) as ProtoGrpcType;
-const client = new grpcObject.example.ExampleService(
-  'localhost:50051',
-  grpc.credentials.createInsecure()
-) as ExampleServiceClient;
+const initReq = new InitializeRequest();
+const dims = new GridDimensions()
+dims.setXMax(10);
+dims.setYMax(10);
+dims.setZMax(10);
+initReq.setDimensions(dims);
 
-client.UnaryCall({ message: 'world' }, (err, response) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
-  console.log(response.reply);
-});
+const stepReq = new StepRequest();
+stepReq.setNumSteps(1000);
+stepReq.setRule("ASNFZ4mrze8BI0VniavN7w==");
+
+request.setTimeout(5);
+request.setInitReq(initReq);
+request.setStepReq(stepReq);
+
+stateService.startSimulation(request)
+  .then((response: SimulationResultResponse) => {
+    console.log(`Received response: ${response.getStateChangedDuringSim()}`);
+  }).catch((err: grpcWeb.RpcError) => {
+    console.log(`Received error: ${err.code}, ${err.message}`);
+  });
