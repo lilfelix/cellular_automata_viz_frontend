@@ -28,6 +28,19 @@ This is server side:
 `@grpc/grpc-js` from https://github.com/grpc/grpc-node
 
 
+## envoy
+
+A proxy is needed to convert browser's HTTP1.1 request to gRPC servers HTTP2.0 request
+
+- Install [envoy](https://www.envoyproxy.io/docs/envoy/latest/start/install) using brew: `brew install envoy`
+- Start proxy: `envoy -c $PWD/envoy.yaml`
+- Ensure client uses the port configured e.g. `8080`
+
+*Why Envoy?*
+
+-	gRPC-Web Translation: Browsers can’t make native gRPC calls due to HTTP/2 restrictions. grpc-web works by translating the gRPC calls into HTTP/1.1, which Envoy understands and forwards to your gRPC server.
+-	CORS Handling: Envoy can handle the required CORS headers that the browser enforces, making cross-origin requests possible.
+
 ## Start a simulation
 
 ```

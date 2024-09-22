@@ -34,10 +34,14 @@ button {
 	-ms-user-select: none;
 	user-select: none;
 	pointer-events: none;
-	z-index: 1; /* TODO Solve this in HTML */
+	/* TODO Solve this in HTML */
+	z-index: 1;
 }
 
-a, button, input, select {
+a,
+button,
+input,
+select {
 	pointer-events: auto;
 }
 
@@ -46,7 +50,8 @@ a, button, input, select {
 	-webkit-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
-	z-index: 2 !important; /* TODO Solve this in HTML */
+	z-index: 2 !important;
+	/* TODO Solve this in HTML */
 }
 
 #overlay {
@@ -61,19 +66,19 @@ a, button, input, select {
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-	background: rgba(0,0,0,0.7);
+	background: rgba(0, 0, 0, 0.7);
 }
 
-	#overlay button {
-		background: transparent;
-		border: 0;
-		border: 1px solid rgb(255, 255, 255);
-		border-radius: 4px;
-		color: #ffffff;
-		padding: 12px 18px;
-		text-transform: uppercase;
-		cursor: pointer;
-	}
+#overlay button {
+	background: transparent;
+	border: 0;
+	border: 1px solid rgb(255, 255, 255);
+	border-radius: 4px;
+	color: #ffffff;
+	padding: 12px 18px;
+	text-transform: uppercase;
+	cursor: pointer;
+}
 
 #notSupported {
 	width: 50%;
@@ -81,4 +86,21 @@ a, button, input, select {
 	background-color: #f00;
 	margin-top: 20px;
 	padding: 10px;
+}
+
+/* Simple style for placing the button in the top-right corner */
+.start-button {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	padding: 10px 20px;
+	background-color: #4CAF50;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.start-button:hover {
+	background-color: #45a049;
 }

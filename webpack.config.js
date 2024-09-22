@@ -1,4 +1,3 @@
-'use strict';
 const path = require('path');
 
 module.exports = {
@@ -27,15 +26,14 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js'],
     modules: [path.resolve(__dirname, 'src'), 'node_modules'],
-    // resolve.fallback: Prevents Webpack from trying to polyfill fs and path modules for a browser environment, which would generate unnecessary code for frontend.
+    alias: {
+      "grpc-web": path.resolve(__dirname, 'node_modules/grpc-web'),
+      "google-protobuf": path.resolve(__dirname, 'node_modules/google-protobuf')
+    },
     fallback: {
       "fs": false,
       "path": false
     }
   },
-  // externals: Declares grpc-web and google-protobuf as CommonJS modules, so Webpack knows not to attempt to bundle them as ESModules.
-  externals: {
-    "grpc-web": 'commonjs grpc-web',
-    "google-protobuf": 'commonjs google-protobuf'
-  }
+  target: 'web', // Ensure Webpack is targeting the web platform
 };
