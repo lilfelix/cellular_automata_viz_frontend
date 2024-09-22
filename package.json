@@ -4,10 +4,15 @@
   "description": "Social fabric neural network visualization",
   "main": "js/index.js",
   "dependencies": {
+    "@grpc/grpc-js": "^1.11.3",
+    "@grpc/proto-loader": "^0.7.0",
+    "grpc-web": "^1.5.0",
     "three": "^0.128.0"
   },
   "devDependencies": {
+    "@types/node": "^20.4.2",
     "@types/three": "^0.127.1",
+    "protoc-gen-js": "^3.21.2",
     "ts-loader": "^9.1.1",
     "typescript": "^4.2.4",
     "webpack": "^5.36.2",
@@ -17,7 +22,9 @@
   "scripts": {
     "test": "jest",
     "build": "webpack --mode production",
-    "start": "webpack --watch"
+    "start": "webpack --watch",
+    "server": "ts-node src/server.ts",
+    "proto:gen": "npx proto-loader-gen-types --grpcLib=@grpc/grpc-js --outDir=src/proto src/proto/*.proto"
   },
   "repository": {
     "type": "git",

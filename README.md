@@ -1,6 +1,31 @@
 # Social-fabric
 Social fabric neural network visualization 
 
+## Proto
+
+
+[See docs for unintuitive use of `js_out`](https://github.com/protocolbuffers/protobuf-javascript?tab=readme-ov-file#the---js_out-flag)
+```bash
+export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
+protoc --js_out=$PWD/src/proto/generated --proto_path=$PWD/src/proto/ $PWD/src/proto/sim_server.proto
+``` 
+with gRPC services:
+```bash
+export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
+protoc --js_out=import_style=commonjs:$PWD/src/proto/generated \
+    --proto_path=$PWD/src/proto/ $PWD/src/proto/sim_server.proto \
+    --grpc-web_out=import_style=commonjs,mode=grpcwebtext:$PWD/src/proto/generated
+``` 
+
+## gRPC
+
+Use [grpc-web](https://github.com/grpc/grpc-web) via `npm i grpc-web`.
+It's a JavaScript implementation of gRPC for browser clients. Intallstion instructions [here](https://github.com/grpc/grpc-web?tab=readme-ov-file#code-generator-plugins)
+
+
+This is server side:
+`@grpc/grpc-js` from https://github.com/grpc/grpc-node
+
 ## To read
 
 ### WebGL
