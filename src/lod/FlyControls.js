@@ -29,6 +29,7 @@ class FlyControls extends EventDispatcher {
 
 		this.dragToLook = false;
 		this.autoForward = false;
+		this.enabled = true; // Expose disabling of fly controls for freezing scene
 
 		// disable default target object behavior
 
@@ -50,6 +51,8 @@ class FlyControls extends EventDispatcher {
 		this.rotationVector = new Vector3( 0, 0, 0 );
 
 		this.keydown = function ( event ) {
+
+			if (!this.enabled) return;
 
 			if ( event.altKey ) {
 
@@ -89,6 +92,8 @@ class FlyControls extends EventDispatcher {
 
 		this.keyup = function ( event ) {
 
+			if (!this.enabled) return;
+
 			switch ( event.code ) {
 
 				case 'ShiftLeft':
@@ -121,6 +126,8 @@ class FlyControls extends EventDispatcher {
 
 		this.mousedown = function ( event ) {
 
+			if (!this.enabled) return;
+
 			if ( this.dragToLook ) {
 
 				this.mouseStatus ++;
@@ -141,6 +148,7 @@ class FlyControls extends EventDispatcher {
 		};
 
 		this.mousemove = function ( event ) {
+			if (!this.enabled) return;
 
 			if ( ! this.dragToLook || this.mouseStatus > 0 ) {
 
@@ -158,6 +166,7 @@ class FlyControls extends EventDispatcher {
 		};
 
 		this.mouseup = function ( event ) {
+			if (!this.enabled) return;
 
 			if ( this.dragToLook ) {
 

@@ -1,6 +1,7 @@
 import * as grpcWeb from 'grpc-web';
 import { StateServiceClient } from './proto/generated/Sim_serverServiceClientPb';
 import { StartSimulationRequest, SimulationResultResponse, InitializeRequest, GridDimensions, StepRequest, WorldStateResponse } from './proto/generated/sim_server_pb';
+import { mailbox } from './mailbox';
 
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
 
@@ -17,6 +18,7 @@ export function initWorldState() {
   return stateService.initWorldState(request)
     .then((response: WorldStateResponse) => {
       console.log(`Received response: ${response.getMetadata()?.getStatus()}`);
+      // mailbox.setNewState(response);
       return response;
     })
     .catch((err: grpcWeb.RpcError) => {
@@ -33,6 +35,7 @@ function stepWorldStateForward() {
   return stateService.stepWorldStateForward(request)
     .then((response: WorldStateResponse) => {
       console.log(`Received response: ${response.getMetadata()?.getStatus()}`);
+      mailbox.setNewState(response);
       return response;
     })
     .catch((err: grpcWeb.RpcError) => {
@@ -75,5 +78,5 @@ function stopSimulation() {
 // Attach the functions to the global window object so they can be accessed from HTML
 (window as any).startSimulation = startSimulation;
 (window as any).initWorldState = initWorldState;
-(window as any).stepWurldStateForward = stepWorldStateForward;
+(window as any).stepWorldStateForward = stepWorldStateForward;
 (window as any).stopSimulation = stopSimulation;

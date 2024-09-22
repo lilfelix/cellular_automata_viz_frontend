@@ -2,56 +2,53 @@ import { BufferGeometry } from 'three';
 import * as THREE from 'three';
 import { FlyControls } from './FlyControls';
 import { initWorldState } from '../client';
+import { deserializeGridFromProto, mailbox } from '../mailbox';
 import { Vector3D, WorldStateResponse } from '../proto/generated/sim_server_pb';
 
-
 let container;
-
 let camera, scene, renderer, controls;
-
+let controlsEnabled = false; // toggle freeze using space
 const clock = new THREE.Clock();
 
+// Declare materials globally
+let wireframeMaterial: THREE.MeshLambertMaterial;
+let solidMaterial: THREE.MeshLambertMaterial;
+
+// Store icosahedrons in a 3D array
+let icosahedronGrid: THREE.LOD[][][];
+
 function main() {
-  // undefined will generate random icosahedrons. Response will overwrite
   let grid: number[][][];
 
   const response: Promise<WorldStateResponse | void> = initWorldState();
   response.then(r => {
     if (!!r && r.hasState()) {
-      const state = r.getState() as Vector3D;
-      grid = [];
-      for (const vec2D of state.getVec2dList()) {
-        const list2D: number[][] = [];
-        grid.push(list2D);
-        for (const list1D of vec2D.getVec1dList()) {
-          list2D.push(list1D.getBitList());
-        }
-      }
+      grid = deserializeGridFromProto(r);
     } else {
-      console.log(`Coulnd't parse state from response. Will initialize state randomly`);
+      console.log(`Couldn't parse state from response. Will initialize state randomly`);
     }
     init(grid);
     animate();
-  })
-
+  });
 }
 
 main();
 
-
-// grid: 3D array of <x,y,z> coordinates
-function generateIcosahedronsFromGrid(geometry, material, grid: number[][][]) {
+function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
-  for (let i = 0; i < x_len; i++) {
-    for (let j = 0; j < y_len; j++) {
-      for (let k = 0; k < z_len; k++) {
 
+  icosahedronGrid = new Array(x_len);
+  for (let i = 0; i < x_len; i++) {
+    icosahedronGrid[i] = new Array(y_len);
+    for (let j = 0; j < y_len; j++) {
+      icosahedronGrid[i][j] = new Array(z_len);
+      for (let k = 0; k < z_len; k++) {
         const lod = new THREE.LOD();
 
         for (let l = 0; l < geometry.length; l++) {
-          const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, material);
+          const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, wireframeMaterial);
           mesh.scale.set(1.5, 1.5, 1.5);
           mesh.updateMatrix();
           mesh.matrixAutoUpdate = false;
@@ -61,48 +58,31 @@ function generateIcosahedronsFromGrid(geometry, material, grid: number[][][]) {
         const x_scale = 10000 / x_len;
         const y_scale = 10000 / y_len;
         const z_scale = 10000 / z_len;
-        lod.position.x = ((i+1) * x_scale) - 5000;
-        lod.position.y = ((j+1) * y_scale) - 5000;
-        lod.position.z = ((k+1) * z_scale) - 5000;
+        lod.position.x = ((i + 1) * x_scale) - 5000;
+        lod.position.y = ((j + 1) * y_scale) - 5000;
+        lod.position.z = ((k + 1) * z_scale) - 5000;
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
         scene.add(lod);
+        // Show coordinates
+        const axesHelper = new THREE.AxesHelper( 5 );
+        scene.add( axesHelper );
+
+        // Store the LOD in the grid for later updates
+        icosahedronGrid[i][j][k] = lod;
       }
     }
   }
 }
 
-function generateRandomIcosahedrons(geometry, material) {
-  for (let j = 0; j < 1000; j++) {
-
-    const lod = new THREE.LOD();
-
-    for (let i = 0; i < geometry.length; i++) {
-
-      const mesh = new THREE.Mesh(geometry[i][0] as BufferGeometry, material);
-      mesh.scale.set(1.5, 1.5, 1.5);
-      mesh.updateMatrix();
-      mesh.matrixAutoUpdate = false;
-      lod.addLevel(mesh, geometry[i][1] as number);
-
-    }
-
-    lod.position.x = 10000 * (0.5 - Math.random());
-    lod.position.y = 7500 * (0.5 - Math.random());
-    lod.position.z = 10000 * (0.5 - Math.random());
-    lod.updateMatrix();
-    lod.matrixAutoUpdate = false;
-    scene.add(lod);
-  }
-}
-
 function init(grid: number[][][] | undefined) {
-
   container = document.createElement('div');
   document.body.appendChild(container);
 
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
-  camera.position.z = 1000;
+  camera.position.x = 1000;
+  camera.position.y = 1000;
+  camera.position.z = 15000;
 
   scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x000000, 1, 15000);
@@ -116,21 +96,21 @@ function init(grid: number[][][] | undefined) {
   scene.add(dirLight);
 
   const geometry = [
-
     [new THREE.IcosahedronGeometry(100, 16), 50],
     [new THREE.IcosahedronGeometry(100, 8), 300],
     [new THREE.IcosahedronGeometry(100, 4), 1000],
     [new THREE.IcosahedronGeometry(100, 2), 2000],
-    [new THREE.IcosahedronGeometry(100, 1), 8000]
-
+    [new THREE.IcosahedronGeometry(100, 1), 8000],
   ];
 
-  const material = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
+  // Initialize materials
+  wireframeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
+  solidMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000, wireframe: false });
 
   if (grid) {
-    generateIcosahedronsFromGrid(geometry, material, grid);
+    generateIcosahedronsFromGrid(geometry, grid);
   } else {
-    generateRandomIcosahedrons(geometry, material);
+    throw new Error("Invalid grid!");
   }
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -138,39 +118,57 @@ function init(grid: number[][][] | undefined) {
   renderer.setSize(window.innerWidth, window.innerHeight);
   container.appendChild(renderer.domElement);
 
-  //
-
   controls = new FlyControls(camera, renderer.domElement);
   controls.movementSpeed = 1000;
   controls.rollSpeed = Math.PI / 10;
-
-  //
+  window.addEventListener('keydown', (event) => {
+    if (event.code === 'Space') {
+      controlsEnabled = !controlsEnabled;
+      controls.enabled = controlsEnabled;
+    }
+  });
 
   window.addEventListener('resize', onWindowResize);
-
 }
 
 function onWindowResize() {
-
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
-
 }
 
 function animate() {
-
   requestAnimationFrame(animate);
+  if (mailbox.checkInbound()) {
+    const newGrid = mailbox.consumeNewState();
+    updateIcosahedronStatesInScene(newGrid as number[][][]);
+  }
   render();
-
 }
 
 function render() {
-
-  controls.update(clock.getDelta());
-
+  if (controlsEnabled) {
+    controls.update(clock.getDelta());
+  }
   renderer.render(scene, camera);
-
 }
 
+function updateIcosahedronStatesInScene(grid: number[][][]) {
+  const x_len = grid.length;
+  const y_len = grid[0].length;
+  const z_len = grid[0][0].length;
+  for (let i = 0; i < x_len; i++) {
+    for (let j = 0; j < y_len; j++) {
+      for (let k = 0; k < z_len; k++) {
+        const lod = icosahedronGrid[i][j][k];
+        const state = grid[i][j][k];
+
+        for (let l = 0; l < lod.levels.length; l++) {
+          const mesh = lod.levels[l].object as THREE.Mesh;
+          mesh.material = state === 1 ? solidMaterial : wireframeMaterial;
+        }
+      }
+    }
+  }
+}
