@@ -9,10 +9,66 @@ let camera, scene, renderer, controls;
 
 const clock = new THREE.Clock();
 
-init();
+const grid = [[[]]];
+// const grid = null;
+init(grid);
 animate();
 
-function init() {
+// grid: 3D array of <x,y,z> coordinates
+function generateIcosahedronsFromGrid(geometry, material, grid) {
+  const x_len = grid.length;
+  const y_len = grid[0].length;
+  const z_len = grid[0][0].length;
+  for (let i = 0; i < x_len; i++) {
+    for (let j = 0; j < y_len; j++) {
+      for (let k = 0; k < z_len; k++) {
+
+        const lod = new THREE.LOD();
+
+        for (let l = 0; l < geometry.length; l++) {
+          const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, material);
+          mesh.scale.set(1.5, 1.5, 1.5);
+          mesh.updateMatrix();
+          mesh.matrixAutoUpdate = false;
+          lod.addLevel(mesh, geometry[l][1] as number);
+        }
+
+        lod.position.x = 10000 * (0.5 - Math.random());
+        lod.position.y = 7500 * (0.5 - Math.random());
+        lod.position.z = 10000 * (0.5 - Math.random());
+        lod.updateMatrix();
+        lod.matrixAutoUpdate = false;
+        scene.add(lod);
+      }
+    }
+  }
+}
+
+function generateRandomIcosahedrons(geometry, material) {
+  for (let j = 0; j < 1000; j++) {
+
+    const lod = new THREE.LOD();
+
+    for (let i = 0; i < geometry.length; i++) {
+
+      const mesh = new THREE.Mesh(geometry[i][0] as BufferGeometry, material);
+      mesh.scale.set(1.5, 1.5, 1.5);
+      mesh.updateMatrix();
+      mesh.matrixAutoUpdate = false;
+      lod.addLevel(mesh, geometry[i][1] as number);
+
+    }
+
+    lod.position.x = 10000 * (0.5 - Math.random());
+    lod.position.y = 7500 * (0.5 - Math.random());
+    lod.position.z = 10000 * (0.5 - Math.random());
+    lod.updateMatrix();
+    lod.matrixAutoUpdate = false;
+    scene.add(lod);
+  }
+}
+
+function init(grid) {
 
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -43,29 +99,11 @@ function init() {
 
   const material = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
 
-  for (let j = 0; j < 1000; j++) {
-
-    const lod = new THREE.LOD();
-
-    for (let i = 0; i < geometry.length; i++) {
-
-      const mesh = new THREE.Mesh(geometry[i][0] as BufferGeometry, material);
-      mesh.scale.set(1.5, 1.5, 1.5);
-      mesh.updateMatrix();
-      mesh.matrixAutoUpdate = false;
-      lod.addLevel(mesh, geometry[i][1] as number);
-
-    }
-
-    lod.position.x = 10000 * (0.5 - Math.random());
-    lod.position.y = 7500 * (0.5 - Math.random());
-    lod.position.z = 10000 * (0.5 - Math.random());
-    lod.updateMatrix();
-    lod.matrixAutoUpdate = false;
-    scene.add(lod);
-
+  if (grid) {
+    generateIcosahedronsFromGrid(geometry, material, grid); 
+  } else {
+    generateRandomIcosahedrons(geometry, material);
   }
-
 
   renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(window.devicePixelRatio);

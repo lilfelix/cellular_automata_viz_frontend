@@ -88,19 +88,48 @@ select {
 	padding: 10px;
 }
 
-/* Simple style for placing the button in the top-right corner */
-.start-button {
-	position: absolute;
-	top: 10px;
-	right: 10px;
-	padding: 10px 20px;
-	background-color: #4CAF50;
-	color: white;
-	border: none;
-	border-radius: 5px;
-	cursor: pointer;
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    gap: 10px;
 }
 
-.start-button:hover {
-	background-color: #45a049;
+/* Common styles for all buttons */
+.start-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+}
+
+/* Specific styles for each button */
+.start-button.start {
+    background-color: #4CAF50;
+}
+
+.start-button.start:hover {
+    background-color: #45a049;
+}
+
+.start-button.stop {
+    background-color: #f44336;
+}
+
+.start-button.stop:hover {
+    background-color: #e53935;
+}
+
+.start-button.init, .start-button.step {
+    background-color: #2196F3;
+}
+
+.start-button.init:hover, .start-button.step:hover {
+    background-color: #1e88e5;
 }

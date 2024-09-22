@@ -8,7 +8,12 @@
 </head>
 
 <body>
-  <button class="start-button" onclick="startSimulation()">Start</button>
+  <div class="button-container">
+    <button class="start-button init" onclick="initWorldState()">Init</button>
+    <button class="start-button step" onclick="stepWorldStateForward()">Step</button>
+    <button class="start-button start" onclick="startSimulation()">Start</button>
+    <button class="start-button stop" onclick="stopSimulation()">Stop</button>
+  </div>
   <script src="dist/lod.js"></script>
   <script src="dist/client.js"></script>
 </body>
