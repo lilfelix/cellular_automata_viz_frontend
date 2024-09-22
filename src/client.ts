@@ -5,7 +5,7 @@ import { StartSimulationRequest, SimulationResultResponse, InitializeRequest, Gr
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
 
 
-function initWorldState() {
+export function initWorldState() {
 
   const request = new InitializeRequest();
   const dims = new GridDimensions();
@@ -14,9 +14,10 @@ function initWorldState() {
   dims.setZMax(10);
   request.setDimensions(dims);
 
-  stateService.initWorldState(request)
+  return stateService.initWorldState(request)
     .then((response: WorldStateResponse) => {
       console.log(`Received response: ${response.getMetadata()?.getStatus()}`);
+      return response;
     })
     .catch((err: grpcWeb.RpcError) => {
       console.log(`Received error: ${err.code}, ${err.message}`);
@@ -29,9 +30,10 @@ function stepWorldStateForward() {
   request.setRule("ASNFZ4mrze8BI0VniavN7w==");
 
 
-  stateService.stepWorldStateForward(request)
+  return stateService.stepWorldStateForward(request)
     .then((response: WorldStateResponse) => {
       console.log(`Received response: ${response.getMetadata()?.getStatus()}`);
+      return response;
     })
     .catch((err: grpcWeb.RpcError) => {
       console.log(`Received error: ${err.code}, ${err.message}`);
@@ -56,9 +58,10 @@ function startSimulation() {
   request.setInitReq(initReq);
   request.setStepReq(stepReq);
 
-  stateService.startSimulation(request)
+  return stateService.startSimulation(request)
     .then((response: SimulationResultResponse) => {
       console.log(`Received response: ${response.getStateChangedDuringSim()}`);
+      return response;
     })
     .catch((err: grpcWeb.RpcError) => {
       console.log(`Received error: ${err.code}, ${err.message}`);
@@ -72,5 +75,5 @@ function stopSimulation() {
 // Attach the functions to the global window object so they can be accessed from HTML
 (window as any).startSimulation = startSimulation;
 (window as any).initWorldState = initWorldState;
-(window as any).stepWorldStateForward = stepWorldStateForward;
+(window as any).stepWurldStateForward = stepWorldStateForward;
 (window as any).stopSimulation = stopSimulation;

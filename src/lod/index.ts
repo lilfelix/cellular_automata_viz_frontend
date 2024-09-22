@@ -1,6 +1,8 @@
 import { BufferGeometry } from 'three';
 import * as THREE from 'three';
 import { FlyControls } from './FlyControls';
+import { initWorldState } from '../client';
+import { Vector3D, WorldStateResponse } from '../proto/generated/sim_server_pb';
 
 
 let container;
@@ -9,13 +11,36 @@ let camera, scene, renderer, controls;
 
 const clock = new THREE.Clock();
 
-const grid = [[[]]];
-// const grid = null;
-init(grid);
-animate();
+function main() {
+  // undefined will generate random icosahedrons. Response will overwrite
+  let grid: number[][][];
+
+  const response: Promise<WorldStateResponse | void> = initWorldState();
+  response.then(r => {
+    if (!!r && r.hasState()) {
+      const state = r.getState() as Vector3D;
+      grid = [];
+      for (const vec2D of state.getVec2dList()) {
+        const list2D: number[][] = [];
+        grid.push(list2D);
+        for (const list1D of vec2D.getVec1dList()) {
+          list2D.push(list1D.getBitList());
+        }
+      }
+    } else {
+      console.log(`Coulnd't parse state from response. Will initialize state randomly`);
+    }
+    init(grid);
+    animate();
+  })
+
+}
+
+main();
+
 
 // grid: 3D array of <x,y,z> coordinates
-function generateIcosahedronsFromGrid(geometry, material, grid) {
+function generateIcosahedronsFromGrid(geometry, material, grid: number[][][]) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
@@ -33,9 +58,9 @@ function generateIcosahedronsFromGrid(geometry, material, grid) {
           lod.addLevel(mesh, geometry[l][1] as number);
         }
 
-        lod.position.x = 10000 * (0.5 - Math.random());
-        lod.position.y = 7500 * (0.5 - Math.random());
-        lod.position.z = 10000 * (0.5 - Math.random());
+        lod.position.x = i - Math.floor(x_len / 2);
+        lod.position.y = j - Math.floor(y_len / 2);
+        lod.position.z = k - Math.floor(z_len / 2);
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
         scene.add(lod);
@@ -68,7 +93,7 @@ function generateRandomIcosahedrons(geometry, material) {
   }
 }
 
-function init(grid) {
+function init(grid: number[][][] | undefined) {
 
   container = document.createElement('div');
   document.body.appendChild(container);
@@ -100,7 +125,7 @@ function init(grid) {
   const material = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
 
   if (grid) {
-    generateIcosahedronsFromGrid(geometry, material, grid); 
+    generateIcosahedronsFromGrid(geometry, material, grid);
   } else {
     generateRandomIcosahedrons(geometry, material);
   }
