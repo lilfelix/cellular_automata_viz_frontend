@@ -58,9 +58,12 @@ function generateIcosahedronsFromGrid(geometry, material, grid: number[][][]) {
           lod.addLevel(mesh, geometry[l][1] as number);
         }
 
-        lod.position.x = i - Math.floor(x_len / 2);
-        lod.position.y = j - Math.floor(y_len / 2);
-        lod.position.z = k - Math.floor(z_len / 2);
+        const x_scale = 10000 / x_len;
+        const y_scale = 10000 / y_len;
+        const z_scale = 10000 / z_len;
+        lod.position.x = ((i+1) * x_scale) - 5000;
+        lod.position.y = ((j+1) * y_scale) - 5000;
+        lod.position.z = ((k+1) * z_scale) - 5000;
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
         scene.add(lod);
