@@ -38,6 +38,10 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
+  const bitToMaterial = {
+    0: wireframeMaterial,
+    1: solidMaterial,
+  }
 
   icosahedronGrid = new Array(x_len);
   for (let i = 0; i < x_len; i++) {
@@ -48,7 +52,7 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
         const lod = new THREE.LOD();
 
         for (let l = 0; l < geometry.length; l++) {
-          const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, wireframeMaterial);
+          const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, bitToMaterial[grid[i][j][k]]);
           mesh.scale.set(1.5, 1.5, 1.5);
           mesh.updateMatrix();
           mesh.matrixAutoUpdate = false;
@@ -140,10 +144,6 @@ function onWindowResize() {
 
 function animate() {
   requestAnimationFrame(animate);
-  if (mailbox.checkInbound()) {
-    const newGrid = mailbox.consumeNewState();
-    updateIcosahedronStatesInScene(newGrid as number[][][]);
-  }
   render();
 }
 
@@ -151,7 +151,30 @@ function render() {
   if (controlsEnabled) {
     controls.update(clock.getDelta());
   }
+  if (mailbox.hasNewState) {
+    const newGrid = mailbox.consumeNewState();
+    updateIcosahedronStatesInScene(newGrid as number[][][]);
+    console.log('Maibox has new state: ' + hash3DArray(newGrid) + " foo: " + mailbox.foo)
+  } else {
+    console.log("Mailbox has no new state: " + hash3DArray(mailbox.curState) + " foo: " + mailbox.foo)
+  }
   renderer.render(scene, camera);
+}
+
+function hash3DArray(array) {
+  let hash = 0;
+  const prime = 31;
+  for (let i = 0; i < array.length; i++) {
+    const arr2D = array[i];
+    for (let j = 0; j < arr2D.length; j++) {
+      const arr1D = arr2D[j];
+      for (let k = 0; k < arr1D.length; k++) {
+        const value = arr1D[k];
+        hash = (hash * prime + value) >>> 0;
+      }
+    }
+  }
+  return hash;
 }
 
 function updateIcosahedronStatesInScene(grid: number[][][]) {
@@ -166,7 +189,10 @@ function updateIcosahedronStatesInScene(grid: number[][][]) {
 
         for (let l = 0; l < lod.levels.length; l++) {
           const mesh = lod.levels[l].object as THREE.Mesh;
-          mesh.material = state === 1 ? solidMaterial : wireframeMaterial;
+          // mesh.material = state === 1 ? solidMaterial : wireframeMaterial;
+          // Clone the material to avoid shared state issues
+          mesh.material = (state === 1 ? solidMaterial : wireframeMaterial).clone();
+          mesh.material.needsUpdate = true; // ensure material updates
         }
       }
     }

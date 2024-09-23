@@ -1,6 +1,11 @@
 # Social-fabric
 Social fabric neural network visualization 
 
+`openssl rand -hex 16 | xxd -r -p | base64`
+- openssl rand -hex 16: Generates a random 128-bit (16-byte) hex string.
+- xxd -r -p: Converts hex string to raw binary.
+-	base64: Encodes the raw binary to Base64.
+
 ## Proto
 
 [See docs for unintuitive use of `js_out`](https://github.com/protocolbuffers/protobuf-javascript?tab=readme-ov-file#the---js_out-flag)

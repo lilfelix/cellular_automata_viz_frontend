@@ -1,11 +1,13 @@
 import { Vector3D, WorldStateResponse } from "./proto/generated/sim_server_pb";
 
 export const mailbox = {
+    foo: "foo",
     hasNewState: false,
     newState: null as number[][][] | null,
-    checkInbound: () => mailbox.hasNewState,
+    curState: null as number[][][] | null,
     consumeNewState: () => {
         const state = mailbox.newState;
+        mailbox.curState = state;
         mailbox.newState = null;
         mailbox.hasNewState = false;
         return state;
@@ -13,6 +15,7 @@ export const mailbox = {
     setNewState: (proto: WorldStateResponse) => {
         mailbox.newState = deserializeGridFromProto(proto);
         mailbox.hasNewState = true;
+        mailbox.foo = "" + Math.random();
     },
 };
 
