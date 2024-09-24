@@ -1,9 +1,10 @@
 import * as grpcWeb from 'grpc-web';
 import { StateServiceClient } from './proto/generated/Sim_serverServiceClientPb';
-import { StartSimulationRequest, SimulationResultResponse, InitializeRequest, GridDimensions, StepRequest, WorldStateResponse } from './proto/generated/sim_server_pb';
+import { InitializeRequest, GridDimensions, StepRequest, WorldStateResponse } from './proto/generated/sim_server_pb';
 import { mailbox } from './mailbox';
 
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
+let stopSimulationFlag = false;
 
 
 export function initWorldState(xMax, yMax, zMax,) {
@@ -51,11 +52,23 @@ export async function runSimulationLoop(worldStateId, rule, numSteps = 1) {
   request.setRule(rule);
 
   for (let i = 0; i < numSteps; i += 1) {
-    await stateService.stepWorldStateForward(request).then(mailbox.setNewState);
+    if (stopSimulationFlag) {
+      stopSimulationFlag = false;
+      break;
+    }
+    await stateService.stepWorldStateForward(request)
+      .then(mailbox.setNewState)
+      .then(r => {
+        const counterDiv = window.document.getElementById('counter');
+        if (counterDiv) {
+          counterDiv.innerHTML = `${(r as WorldStateResponse).getMetadata()?.getStep()}`;
+        }
+      });
   }
 }
 
 export function stopSimulation() {
   console.log("Stopping simulation...");
+  stopSimulationFlag = true;
 }
 

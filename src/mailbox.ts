@@ -14,6 +14,7 @@ export const mailbox = {
     setNewState: (proto: WorldStateResponse) => {
         mailbox.newState = deserializeGridFromProto(proto);
         mailbox.hasNewState = true;
+        return proto;
     },
 };
 
