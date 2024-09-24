@@ -16,5 +16,6 @@ const RULE = "ZwH77PdKcK5IwoRFbxFeEg==";
 (window as any).startSimulation = () => startSimulation(RULE, 20, 20, 20);
 (window as any).stopSimulation = stopSimulation;
 
-
-main(10, 10, 10);
+const dim = 14;
+const numMaterialDetailLevels = 1;
+main(dim, dim, dim, numMaterialDetailLevels);
