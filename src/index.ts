@@ -10,12 +10,14 @@ import { initWorldState, stepWorldStateForward, runSimulationLoop, stopSimulatio
 import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
 const RULE = "ZwH77PdKcK5IwoRFbxFeEg==";
-const DIM = 14;
+const NUM_DIMS = 14;
 const NUM_MATERIAL_DETAIL_LEVELS = 1;
+const NUM_SIM_LOOP_STEPS = 100000;
+const NUM_MILLISECONDS_SLEEP_PER_STEP = 400;
 
 // Attach functions to the global window object for HTML buttons
 (window as any).resetWorldState = () => {
-    initWorldState(DIM, DIM, DIM).then(r => {
+    initWorldState(NUM_DIMS, NUM_DIMS, NUM_DIMS).then(r => {
         const counterDiv = window.document.getElementById('counter');
         if (counterDiv) {
             counterDiv.innerHTML = "0";
@@ -30,7 +32,12 @@ const NUM_MATERIAL_DETAIL_LEVELS = 1;
         }
     });
 };
-(window as any).runSimulationLoop = () => runSimulationLoop((window as any).worldStateId, RULE, 100000);
+(window as any).runSimulationLoop = () => runSimulationLoop(
+    (window as any).worldStateId,
+    RULE,
+    NUM_SIM_LOOP_STEPS,
+    NUM_MILLISECONDS_SLEEP_PER_STEP
+);
 (window as any).stopSimulation = stopSimulation;
 
-main(DIM, DIM, DIM, NUM_MATERIAL_DETAIL_LEVELS);
+main(NUM_DIMS, NUM_DIMS, NUM_DIMS, NUM_MATERIAL_DETAIL_LEVELS);

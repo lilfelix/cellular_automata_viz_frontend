@@ -95,11 +95,11 @@ function init(grid: number[][][] | undefined, numMaterialDetailLevels = 2) {
 
   const geometry = [
     // [new THREE.IcosahedronGeometry(100, 16), 50],
+    [new THREE.IcosahedronGeometry(100, 8), 300],
     // [new THREE.IcosahedronGeometry(100, 4), 1000],
     // [new THREE.IcosahedronGeometry(100, 2), 2000],
-    [new THREE.IcosahedronGeometry(100, 1), 8000],
+    // [new THREE.IcosahedronGeometry(100, 1), 8000],
   ];
-  // [new THREE.IcosahedronGeometry(100, 8), 300],
   // ].slice(numMaterialDetailLevels);
 
   // Initialize materials

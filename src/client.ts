@@ -45,7 +45,7 @@ export function stepWorldStateForward(worldStateId: number, rule: string, numSte
     });
 }
 
-export async function runSimulationLoop(worldStateId, rule, numSteps = 1) {
+export async function runSimulationLoop(worldStateId, rule, numSteps = 1, stepSleepMs = 400) {
   const request = new StepRequest();
   request.setWorldStateId(worldStateId);
   request.setNumSteps(numSteps);
@@ -56,6 +56,7 @@ export async function runSimulationLoop(worldStateId, rule, numSteps = 1) {
       stopSimulationFlag = false;
       break;
     }
+    await new Promise(r => setTimeout(r, stepSleepMs));
     await stateService.stepWorldStateForward(request)
       .then(mailbox.setNewState)
       .then(r => {
