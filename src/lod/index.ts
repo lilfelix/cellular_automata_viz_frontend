@@ -22,11 +22,7 @@ export function main(xMax, yMax, zMax, numMaterialDetailLevels) {
 
   const response: Promise<WorldStateResponse | void> = initWorldState(xMax, yMax, zMax);
   response.then(r => {
-    if (!!r && r.hasState()) {
-      grid = deserializeGridFromProto(r);
-    } else {
-      console.log(`Couldn't parse state from response. Will initialize state randomly`);
-    }
+    grid = deserializeGridFromProto(r as WorldStateResponse);
     init(grid, numMaterialDetailLevels);
     animate();
   });
@@ -153,7 +149,7 @@ function render() {
   if (mailbox.hasNewState) {
     const newGrid = mailbox.consumeNewState();
     updateIcosahedronStatesInScene(newGrid as number[][][]);
-  } 
+  }
   renderer.render(scene, camera);
 }
 

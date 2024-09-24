@@ -9,9 +9,10 @@
 
 <body>
   <div class="button-container">
-    <button class="start-button init" onclick="initWorldState()">Init</button>
+    <button disabled class="start-button count" id="counter">1</button>
+    <button class="start-button init" onclick="resetWorldState()">RESET</button>
     <button class="start-button step" onclick="stepWorldStateForward()">Step</button>
-    <button class="start-button start" onclick="startSimulation()">Start</button>
+    <button class="start-button start" onclick="runSimulationLoop()">Run</button>
     <button class="start-button stop" onclick="stopSimulation()">Stop</button>
   </div>
   <script src="dist/bundle.js"></script> <!-- Use the bundled script -->

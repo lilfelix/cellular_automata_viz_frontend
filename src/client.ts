@@ -6,7 +6,7 @@ import { mailbox } from './mailbox';
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
 
 
-export function initWorldState(xMax, yMax, zMax) {
+export function initWorldState(xMax, yMax, zMax,) {
 
   const request = new InitializeRequest();
   const dims = new GridDimensions();
@@ -44,32 +44,15 @@ export function stepWorldStateForward(worldStateId: number, rule: string, numSte
     });
 }
 
-export function startSimulation(rule, xMax, yMax, zMax, numSteps=1, timeout=5) {
-  const request = new StartSimulationRequest();
+export async function runSimulationLoop(worldStateId, rule, numSteps = 1) {
+  const request = new StepRequest();
+  request.setWorldStateId(worldStateId);
+  request.setNumSteps(numSteps);
+  request.setRule(rule);
 
-  const initReq = new InitializeRequest();
-  const dims = new GridDimensions();
-  dims.setXMax(xMax);
-  dims.setYMax(yMax);
-  dims.setZMax(zMax);
-  initReq.setDimensions(dims);
-
-  const stepReq = new StepRequest();
-  stepReq.setNumSteps(numSteps);
-  stepReq.setRule(rule);
-
-  request.setTimeout(timeout);
-  request.setInitReq(initReq);
-  request.setStepReq(stepReq);
-
-  return stateService.startSimulation(request)
-    .then((response: SimulationResultResponse) => {
-      console.log(`Received response: ${response.getStateChangedDuringSim()}`);
-      return response;
-    })
-    .catch((err: grpcWeb.RpcError) => {
-      console.log(`Received error: ${err.code}, ${err.message}`);
-    });
+  for (let i = 0; i < numSteps; i += 1) {
+    await stateService.stepWorldStateForward(request).then(mailbox.setNewState);
+  }
 }
 
 export function stopSimulation() {

@@ -133,3 +133,7 @@ select {
 .start-button.init:hover, .start-button.step:hover {
     background-color: #1e88e5;
 }
+
+.start-button.count {
+    background-color: #54e1b2;
+}

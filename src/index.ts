@@ -6,16 +6,31 @@ import './lod/index.ts'; // Adjust the path if necessary
 import { main } from './lod/index';
 
 // Import client functions
-import { initWorldState, stepWorldStateForward, startSimulation, stopSimulation } from './client';
+import { initWorldState, stepWorldStateForward, runSimulationLoop, stopSimulation } from './client';
+import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
 const RULE = "ZwH77PdKcK5IwoRFbxFeEg==";
+const DIM = 14;
+const NUM_MATERIAL_DETAIL_LEVELS = 1;
 
 // Attach functions to the global window object for HTML buttons
-(window as any).initWorldState = () => initWorldState(20, 20, 20);
-(window as any).stepWorldStateForward = () => stepWorldStateForward((window as any).worldStateId, RULE, 1);
-(window as any).startSimulation = () => startSimulation(RULE, 20, 20, 20);
+(window as any).resetWorldState = () => {
+    initWorldState(DIM, DIM, DIM).then(r => {
+        const counterDiv = window.document.getElementById('counter');
+        if (counterDiv) {
+            counterDiv.innerHTML = "0";
+        }
+    });
+};
+(window as any).stepWorldStateForward = () => {
+    stepWorldStateForward((window as any).worldStateId, RULE, 1).then(r => {
+        const counterDiv = window.document.getElementById('counter');
+        if (counterDiv) {
+            counterDiv.innerHTML = `${(r as WorldStateResponse).getMetadata()?.getStep()}`;
+        }
+    });
+};
+(window as any).runSimulationLoop = () => runSimulationLoop((window as any).worldStateId, RULE, 100000);
 (window as any).stopSimulation = stopSimulation;
 
-const dim = 14;
-const numMaterialDetailLevels = 1;
-main(dim, dim, dim, numMaterialDetailLevels);
+main(DIM, DIM, DIM, NUM_MATERIAL_DETAIL_LEVELS);
