@@ -3,17 +3,16 @@ import { StateServiceClient } from './proto/generated/Sim_serverServiceClientPb'
 import { StartSimulationRequest, SimulationResultResponse, InitializeRequest, GridDimensions, StepRequest, WorldStateResponse } from './proto/generated/sim_server_pb';
 import { mailbox } from './mailbox';
 
-const RULE = "ZwH77PdKcK5IwoRFbxFeEg==";
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
 
 
-export function initWorldState() {
+export function initWorldState(xMax, yMax, zMax) {
 
   const request = new InitializeRequest();
   const dims = new GridDimensions();
-  dims.setXMax(10);
-  dims.setYMax(10);
-  dims.setZMax(10);
+  dims.setXMax(xMax);
+  dims.setYMax(yMax);
+  dims.setZMax(zMax);
   request.setDimensions(dims);
 
   return stateService.initWorldState(request)
@@ -28,12 +27,11 @@ export function initWorldState() {
     });
 }
 
-export function stepWorldStateForward(worldStateId: number) {
+export function stepWorldStateForward(worldStateId: number, rule: string, numSteps: number) {
   const request = new StepRequest();
-  request.setNumSteps(1);
-  request.setRule(RULE);
   request.setWorldStateId(worldStateId);
-
+  request.setRule(rule);
+  request.setNumSteps(numSteps);
 
   return stateService.stepWorldStateForward(request)
     .then((response: WorldStateResponse) => {
@@ -46,21 +44,21 @@ export function stepWorldStateForward(worldStateId: number) {
     });
 }
 
-export function startSimulation() {
+export function startSimulation(rule, xMax, yMax, zMax, numSteps=1, timeout=5) {
   const request = new StartSimulationRequest();
 
   const initReq = new InitializeRequest();
   const dims = new GridDimensions();
-  dims.setXMax(10);
-  dims.setYMax(10);
-  dims.setZMax(10);
+  dims.setXMax(xMax);
+  dims.setYMax(yMax);
+  dims.setZMax(zMax);
   initReq.setDimensions(dims);
 
   const stepReq = new StepRequest();
-  stepReq.setNumSteps(1000);
-  stepReq.setRule(RULE);
+  stepReq.setNumSteps(numSteps);
+  stepReq.setRule(rule);
 
-  request.setTimeout(5);
+  request.setTimeout(timeout);
   request.setInitReq(initReq);
   request.setStepReq(stepReq);
 
@@ -78,8 +76,3 @@ export function stopSimulation() {
   console.log("Stopping simulation...");
 }
 
-// Attach the functions to the global window object so they can be accessed from HTML
-(window as any).startSimulation = startSimulation;
-(window as any).initWorldState = initWorldState;
-(window as any).stepWorldStateForward = () => stepWorldStateForward((window as any).worldStateId);
-(window as any).stopSimulation = stopSimulation;

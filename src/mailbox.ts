@@ -1,7 +1,6 @@
 import { Vector3D, WorldStateResponse } from "./proto/generated/sim_server_pb";
 
 export const mailbox = {
-    foo: "foo",
     hasNewState: false,
     newState: null as number[][][] | null,
     curState: null as number[][][] | null,
@@ -15,7 +14,6 @@ export const mailbox = {
     setNewState: (proto: WorldStateResponse) => {
         mailbox.newState = deserializeGridFromProto(proto);
         mailbox.hasNewState = true;
-        mailbox.foo = "" + Math.random();
     },
 };
 

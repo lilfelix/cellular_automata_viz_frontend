@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { FlyControls } from './FlyControls';
 import { initWorldState } from '../client';
 import { deserializeGridFromProto, mailbox } from '../mailbox';
-import { Vector3D, WorldStateResponse } from '../proto/generated/sim_server_pb';
+import { WorldStateResponse } from '../proto/generated/sim_server_pb';
 
 let container;
 let camera, scene, renderer, controls;
@@ -17,10 +17,10 @@ let solidMaterial: THREE.MeshLambertMaterial;
 // Store icosahedrons in a 3D array
 let icosahedronGrid: THREE.LOD[][][];
 
-function main() {
+export function main(xMax, yMax, zMax) {
   let grid: number[][][];
 
-  const response: Promise<WorldStateResponse | void> = initWorldState();
+  const response: Promise<WorldStateResponse | void> = initWorldState(xMax, yMax, zMax);
   response.then(r => {
     if (!!r && r.hasState()) {
       grid = deserializeGridFromProto(r);
@@ -31,8 +31,6 @@ function main() {
     animate();
   });
 }
-
-main();
 
 function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
   const x_len = grid.length;
@@ -69,8 +67,8 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
         lod.matrixAutoUpdate = false;
         scene.add(lod);
         // Show coordinates
-        const axesHelper = new THREE.AxesHelper( 5 );
-        scene.add( axesHelper );
+        const axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
 
         // Store the LOD in the grid for later updates
         icosahedronGrid[i][j][k] = lod;
