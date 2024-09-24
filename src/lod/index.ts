@@ -153,27 +153,8 @@ function render() {
   if (mailbox.hasNewState) {
     const newGrid = mailbox.consumeNewState();
     updateIcosahedronStatesInScene(newGrid as number[][][]);
-    console.log('Maibox has new state: ' + hash3DArray(newGrid))
-  } else {
-    console.log("Mailbox has no new state: " + hash3DArray(mailbox.curState))
-  }
+  } 
   renderer.render(scene, camera);
-}
-
-function hash3DArray(array) {
-  let hash = 0;
-  const prime = 31;
-  for (let i = 0; i < array.length; i++) {
-    const arr2D = array[i];
-    for (let j = 0; j < arr2D.length; j++) {
-      const arr1D = arr2D[j];
-      for (let k = 0; k < arr1D.length; k++) {
-        const value = arr1D[k];
-        hash = (hash * prime + value) >>> 0;
-      }
-    }
-  }
-  return hash;
 }
 
 function updateIcosahedronStatesInScene(grid: number[][][]) {
