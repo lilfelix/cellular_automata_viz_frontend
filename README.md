@@ -43,10 +43,6 @@ Use [grpc-web](https://github.com/grpc/grpc-web) via `npm i grpc-web`.
 It's a JavaScript implementation of gRPC for browser clients. Intallstion instructions [here](https://github.com/grpc/grpc-web?tab=readme-ov-file#code-generator-plugins). It also has experimental [Typescript support](https://github.com/grpc/grpc-web/tree/master/net/grpc/gateway/examples/echo/ts-example)
 
 
-This is server side:
-`@grpc/grpc-js` from https://github.com/grpc/grpc-node
-
-
 ## envoy
 
 A proxy is needed to convert browser's HTTP1.1 request to gRPC servers HTTP2.0 request
@@ -89,6 +85,8 @@ RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 - [x] [Camera panning objects in space](https://threejs.org/examples/#webgl_camera)
 - [ ] [Anvaka's very cool graph visualizations](https://anvaka.github.io/pm/#/?_k=rn1q6d)
 
+## Inspiration to this project 
+
 ### TensorSpace
 - [x] [TensorSpace](https://github.com/tensorspace-team/tensorspace): TensorSpace is a neural network 3D visualization framework built using TensorFlow.js, Three.js and Tween.js. TensorSpace provides Keras-like APIs to build deep learning layers, load pre-trained models, and generate a 3D visualization in the browser.
 
@@ -96,16 +94,4 @@ RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 - [ ] [Data-Driven Documents](https://d3js.org/) with a cool [Obama bugdet vizualization in 2D](https://archive.nytimes.com/www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html)
 
 
-Visualizing the social fabric as the skin of the organism that is society.
-Neural network with hot spots. How activity in a region is interpreted as a visualization depends on the sentiment analysis done on the data causing the 
-excitatory or inhibitory activity.
 
-By zooming into a hot spot, like `Level of Detail` and `Camera panning objects in space` examples above,
-You could read the corresponding tweets, news articles, youtube clips, podcasts, radio announcements etc.
-Defense (Försvar) intelligence system?
-In a crisis, the defense ought to have a channel open in all different media,
-and tap into what people are requesting. This could help people self-triage in
-the event of a crisis.
-
-1. Department sends clear instrutions via all its channels on how to contact them, allowing auto-triaging.
-2. If a department can scan fb,twter,reddit etc for people responding using this format, the pre-triage would be complete, and the department can reach out/help people in a better order than random.
