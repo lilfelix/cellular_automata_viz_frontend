@@ -75,10 +75,11 @@ export function handleInputField(worldStateId: number, str: string) {
 }
 
 function isValidInput(str: string) {
+  const maxInt = (BigInt(1) << BigInt(128)) - BigInt(1);
   if (typeof str != "string") return false; // we only process strings!  
   if (isNaN(str as any)) return false; // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
   if (isNaN(parseFloat(str))) return false;// ...and ensure strings of whitespace fail
-  return Number.isInteger(Number(str)) && Number(str) >= 0 && Number(str) <= 255;
+  return Number.isInteger(Number(str)) && Number(str) >= 0 && Number(str) <= maxInt;
 }
 
 export async function runSimulationLoop(worldStateId, rule, numSteps = 1, stepSleepMs = 400) {

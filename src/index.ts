@@ -11,11 +11,11 @@ import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
 
 const RULE = "ZwH77PdKcK5IwoRFbxFeEg=="; // Overridable via GUI
-const NUM_DIMS = 14;
+const NUM_DIMS = 100;
 const NUM_MATERIAL_DETAIL_LEVELS = 1;
 const NUM_SIM_LOOP_STEPS = 100000;
 const NUM_MILLISECONDS_SLEEP_PER_STEP = 400;
-const NUM_HISTORICAL_STATES = 5;
+const NUM_HISTORICAL_STATES = 100;
 
 // Attach functions to the global window object for HTML buttons
 (window as any).resetWorldState = () => {
