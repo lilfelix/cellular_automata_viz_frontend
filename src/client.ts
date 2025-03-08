@@ -1,6 +1,6 @@
 import * as grpcWeb from 'grpc-web';
 import { StateServiceClient } from './proto/generated/Sim_serverServiceClientPb';
-import { InitializeRequest, GridDimensions, StepRequest, WorldStateResponse } from './proto/generated/sim_server_pb';
+import { InitializeRequest, GridDimensions, StepRequest, WorldStateResponse, UpdateRuleRequest, UpdateRuleResponse } from './proto/generated/sim_server_pb';
 import { mailbox } from './mailbox';
 
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
@@ -43,6 +43,42 @@ export function stepWorldStateForward(worldStateId: number, rule: string, numSte
     .catch((err: grpcWeb.RpcError) => {
       console.log(`Received error: ${err.code}, ${err.message}`);
     });
+}
+
+export function updateRule(worldStateId: number, ruleNumber: number) {
+  const request = new UpdateRuleRequest();
+  request.setWorldStateId(worldStateId);
+  request.setRuleNumber(ruleNumber);
+
+  return stateService.updateRule(request)
+    .then((response: UpdateRuleResponse) => {
+      console.log(`Response: ruleNumber: ${response.getRuleNumber()}, rule: ${response.getRule_asB64()}`);
+      return response.getRule_asB64();
+    })
+    .catch((err: grpcWeb.RpcError) => {
+      console.log(`Received error: ${err.code}, ${err.message}`);
+      return (window as any).rule;
+    });
+}
+
+export function handleInputField(worldStateId: number, str: string) {
+  if (!isValidInput(str)) {
+    window.alert(`Invalid input: ${str}. Has to be integer in range 0-255`);
+  }
+  const ruleNumber = Number(str);
+  updateRule(worldStateId, ruleNumber).then(ruleStr => {
+    (window as any).rule = ruleStr;
+    if (!!document.getElementById("rule-container")) {
+      (document.getElementById("rule-container") as HTMLElement).innerText = `Rule: ${ruleNumber} a.k.a ${(window as any).rule}`;
+    }
+  });
+}
+
+function isValidInput(str: string) {
+  if (typeof str != "string") return false; // we only process strings!  
+  if (isNaN(str as any)) return false; // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+  if (isNaN(parseFloat(str))) return false;// ...and ensure strings of whitespace fail
+  return Number.isInteger(Number(str)) && Number(str) >= 0 && Number(str) <= 255;
 }
 
 export async function runSimulationLoop(worldStateId, rule, numSteps = 1, stepSleepMs = 400) {

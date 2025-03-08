@@ -22,20 +22,12 @@ Now the frontend should be up!🚀 Navigation controls:
 
 ## Proto
 
-[See docs for unintuitive use of `js_out`](https://github.com/protocolbuffers/protobuf-javascript?tab=readme-ov-file#the---js_out-flag)
+Run the following command to generate the proto messages and the gRPC service client stub from your .proto definitions:
 ```bash
 export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
 protoc --js_out=$PWD/src/proto/generated --proto_path=$PWD/src/proto/ $PWD/src/proto/sim_server.proto
 ``` 
-
-Run the following command to generate the proto messages and the gRPC service client stub from your .proto definitions:
-```bash
-export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
-protoc -I=$PWD/src/proto/ \
-  --js_out=import_style=commonjs:$PWD/src/proto/generated \
-  --grpc-web_out=import_style=typescript,mode=grpcweb:$PWD/src/proto/generated \
-  $PWD/src/proto/sim_server.proto
-``` 
+[See docs for unintuitive use of `js_out`](https://github.com/protocolbuffers/protobuf-javascript?tab=readme-ov-file#the---js_out-flag)
 
 ## gRPC
 
