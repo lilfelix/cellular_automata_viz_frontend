@@ -88,17 +88,33 @@ select {
 	padding: 10px;
 }
 
-.button-container {
+.top-menu {
     display: flex;
-    justify-content: flex-end;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-end;
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 0;
+    right: 0;
+    padding: 10px;
     gap: 10px;
 }
 
-/* Common styles for all buttons */
+.button-container {
+    display: flex;
+    gap: 10px;
+}
+
+.input-container {
+    display: flex;
+    width: 100%;
+}
+
+.input-field {
+	background-color: #333;
+	color: white;
+    flex-grow: 1;
+}
+
 .start-button {
     padding: 10px 20px;
     border: none;
@@ -109,7 +125,6 @@ select {
     font-family: Arial, sans-serif;
 }
 
-/* Specific styles for each button */
 .start-button.start {
     background-color: #4CAF50;
 }

@@ -8,12 +8,17 @@
 </head>
 
 <body>
-  <div class="button-container">
-    <button disabled class="start-button count" id="counter">1</button>
-    <button class="start-button init" onclick="resetWorldState()">RESET</button>
-    <button class="start-button step" onclick="stepWorldStateForward()">Step</button>
-    <button class="start-button start" onclick="runSimulationLoop()">Run</button>
-    <button class="start-button stop" onclick="stopSimulation()">Stop</button>
+  <div class="top-menu">
+    <div class="button-container">
+      <button disabled class="start-button count" id="counter">1</button>
+      <button class="start-button init" onclick="resetWorldState()">RESET</button>
+      <button class="start-button step" onclick="stepWorldStateForward()">Step</button>
+      <button class="start-button start" onclick="runSimulationLoop()">Run</button>
+      <button class="start-button stop" onclick="stopSimulation()">Stop</button>
+    </div>
+    <div class="input-container">
+      <input type="text" class="start-button input-field" id="inputField" placeholder="Enter a cellular automata rule">
+    </div>
   </div>
   <script src="dist/bundle.js"></script> <!-- Use the bundled script -->
 </body>

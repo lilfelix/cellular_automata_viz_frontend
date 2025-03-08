@@ -1,5 +1,5 @@
-# Social-fabric
-Social fabric neural network visualization 
+# Cellular Automata visualized in 3D space 
+with fly controls!
 
 
 ## Get started
