@@ -8,7 +8,6 @@ import { WorldStateResponse } from '../proto/generated/sim_server_pb';
 let container;
 let camera, scene, renderer, controls;
 let controlsEnabled = false; // toggle freeze using space
-let currentTarget: THREE.Vector3;
 const clock = new THREE.Clock();
 
 // Declare materials globally
@@ -24,7 +23,17 @@ export function main(xMax, yMax, zMax, numMaterialDetailLevels) {
   const response: Promise<WorldStateResponse | void> = initWorldState(xMax, yMax, zMax);
   response.then(r => {
     grid = deserializeGridFromProto(r as WorldStateResponse);
-    init(grid, numMaterialDetailLevels);
+
+    const geometry = [
+      // [new THREE.IcosahedronGeometry(100, 16), 50],
+      // [new THREE.IcosahedronGeometry(100, 8), 300],
+      [new THREE.BoxGeometry(100,100,100,1,1,1), 300],
+      // [new THREE.IcosahedronGeometry(100, 4), 1000],
+      // [new THREE.IcosahedronGeometry(100, 2), 2000],
+      // [new THREE.IcosahedronGeometry(100, 1), 8000],
+    ];
+    // ].slice(numMaterialDetailLevels);
+    init(grid, geometry);
     animate();
   });
 }
@@ -48,18 +57,15 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
 
         for (let l = 0; l < geometry.length; l++) {
           const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, bitToMaterial[grid[i][j][k]]);
-          mesh.scale.set(1.5, 1.5, 1.5);
+          mesh.scale.set(1.0, 1.0, 1.0); // Don't apply scale change to mesh
           mesh.updateMatrix();
           mesh.matrixAutoUpdate = false;
           lod.addLevel(mesh, geometry[l][1] as number);
         }
 
-        const x_scale = 10000 / x_len;
-        const y_scale = 10000 / y_len;
-        const z_scale = 10000 / z_len;
-        lod.position.x = ((i + 1) * x_scale) - 5000;
-        lod.position.y = ((j + 1) * y_scale) - 5000;
-        lod.position.z = ((k + 1) * z_scale) - 5000;
+        lod.position.x = ((i + 1) * 100); // Each cube side is 100 pixels
+        lod.position.y = ((j + 1) * 100);
+        lod.position.z = ((k + 1) * 100);
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
         scene.add(lod);
@@ -74,14 +80,14 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
   }
 }
 
-function init(grid: number[][][] | undefined, numMaterialDetailLevels = 2) {
+function init(grid: number[][][] | undefined, geometry: any[][]) {
   container = document.createElement('div');
   document.body.appendChild(container);
 
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
   camera.position.x = 1000;
   camera.position.y = 1000;
-  camera.position.z = 15000;
+  camera.position.z = 6000;
 
   scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x000000, 1, 20000);
@@ -94,14 +100,6 @@ function init(grid: number[][][] | undefined, numMaterialDetailLevels = 2) {
   dirLight.position.set(0, 0, 1).normalize();
   scene.add(dirLight);
 
-  const geometry = [
-    // [new THREE.IcosahedronGeometry(100, 16), 50],
-    [new THREE.IcosahedronGeometry(100, 8), 300],
-    // [new THREE.IcosahedronGeometry(100, 4), 1000],
-    // [new THREE.IcosahedronGeometry(100, 2), 2000],
-    // [new THREE.IcosahedronGeometry(100, 1), 8000],
-  ];
-  // ].slice(numMaterialDetailLevels);
 
   // Initialize materials
   wireframeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
@@ -129,14 +127,14 @@ function init(grid: number[][][] | undefined, numMaterialDetailLevels = 2) {
   // discouraged to do... note, that this code only
   // works for canceling rotation, for panning you
   // have to add some more code to restore position
-
-
   window.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
       if (controlsEnabled) {
         controls.dispose();
       } else {
         controls = new FlyControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        console.log(controls.dampingFactor)
         controls.movementSpeed = 1000;
         controls.rollSpeed = Math.PI / 10;
       }
