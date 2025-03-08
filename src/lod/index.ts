@@ -143,7 +143,6 @@ function init(grid: number[][][] | undefined, geometry: any[][], numHistoricalSt
       } else {
         controls = new FlyControls(camera, renderer.domElement);
         controls.enableDamping = true;
-        console.log(controls.dampingFactor)
         controls.movementSpeed = 1000;
         controls.rollSpeed = Math.PI / 10;
       }
@@ -225,7 +224,6 @@ function updateIcosahedronStatesInScene(grid: number[][][]) {
     for (let j = 0; j < y_len; j++) {
       for (let k = 0; k < z_len; k++) {
         const lod = meshGrid[i][j][k];
-        console.log(`lod to be cloned for ${i} ${j} ${k} is ${lod}`);
 
         // Save current state as most recent historical state before updating
         meshGridHistory[0].add(lod.clone(true));
@@ -262,12 +260,17 @@ function offsetHistoricalStatesInScene(grid: number[][][]) {
     const offset = (i + 1) * 100;
     for (let j = 0; j < group.children.length; j++) {
       const lod = group.children[j];
-      const { x, y, z } = to3DIndex(j);
-      lod.position.x = (x * 100); // Each cube side is 100 pixels
-      lod.position.y = (y * 100);
-      lod.position.z = (z * 100 + offset);
-      lod.updateMatrix();
-      lod.matrixAutoUpdate = false;
+      if (i < meshGridHistoryUpdateCount) {
+        lod.visible = true;
+        const { x, y, z } = to3DIndex(j);
+        lod.position.x = (x * 100); // Each cube side is 100 pixels
+        lod.position.y = (y * 100 + offset);
+        lod.position.z = (z * 100 - offset);
+        lod.updateMatrix();
+        lod.matrixAutoUpdate = false;
+      } else {
+        lod.visible = false;
+      }
     }
   }
 }
