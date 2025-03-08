@@ -1,6 +1,13 @@
 # Social-fabric
 Social fabric neural network visualization 
 
+
+## Get started
+- Open a browser and paste `/path/to/index.html`
+- <Space> toggles freezing of GUI. Frozen mode allows using buttons like "Start", "Reset" etc
+- Use WASD + EQ controls to navigate in flight mode
+
+### Generating rules
 `openssl rand -hex 16 | xxd -r -p | base64`
 - openssl rand -hex 16: Generates a random 128-bit (16-byte) hex string.
 - xxd -r -p: Converts hex string to raw binary.
