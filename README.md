@@ -3,8 +3,15 @@ Social fabric neural network visualization
 
 
 ## Get started
-- Open a browser and paste `/path/to/index.html`
-- <Space> toggles freezing of GUI. Frozen mode allows using buttons like "Start", "Reset" etc
+- Execute `npm i` to install project dependencies
+- Install [envoy proxy](https://www.envoyproxy.io/) to allow gRPC communication btw frontend and backend
+- Start an [envoy proxy](https://www.envoyproxy.io/) server from the root of this repo: `envoy -c $PWD/envoy.yaml`
+- Start automatic transpilation of .ts frontend changes: `npm run start`. Equivalent to `webpack --watch`
+- Open a browser and paste `/path/to/index.html`, where `index.html` is at the root of this repo
+
+Now the frontend should be up!🚀 Navigation controls:  
+
+- `<Space>` toggles freezing of GUI. Frozen mode allows using buttons like "Start", "Reset" etc
 - Use WASD + EQ controls to navigate in flight mode
 
 ### Generating rules
