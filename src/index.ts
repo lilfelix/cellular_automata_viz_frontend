@@ -3,11 +3,12 @@
 // Import your main application code
 import './lod/index.ts'; // Adjust the path if necessary
 
-import { main } from './lod/index';
+import { main, clearGui, AnimationLoop } from './lod/index';
 
 // Import client functions
 import { initWorldState, stepWorldStateForward, runSimulationLoop, stopSimulation } from './client';
 import { WorldStateResponse } from './proto/generated/sim_server_pb';
+
 
 const RULE = "ZwH77PdKcK5IwoRFbxFeEg==";
 const NUM_DIMS = 14;
@@ -18,13 +19,15 @@ const NUM_HISTORICAL_STATES = 5;
 
 // Attach functions to the global window object for HTML buttons
 (window as any).resetWorldState = () => {
-    initWorldState(NUM_DIMS, NUM_DIMS, NUM_DIMS).then(r => {
-        const counterDiv = window.document.getElementById('counter');
-        if (counterDiv) {
-            counterDiv.innerHTML = "0";
-        }
-    });
+    AnimationLoop.reset();
+    const counterDiv = window.document.getElementById('counter');
+    if (counterDiv) {
+        counterDiv.innerHTML = "0";
+    }
+    clearGui();
+    main(NUM_DIMS, 1, 1, NUM_HISTORICAL_STATES, NUM_MATERIAL_DETAIL_LEVELS);
 };
+
 (window as any).stepWorldStateForward = () => {
     stepWorldStateForward((window as any).worldStateId, RULE, 1).then(r => {
         const counterDiv = window.document.getElementById('counter');

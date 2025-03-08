@@ -5,10 +5,10 @@ import { initWorldState } from '../client';
 import { deserializeGridFromProto, mailbox } from '../mailbox';
 import { WorldStateResponse } from '../proto/generated/sim_server_pb';
 
-let container;
+let container: HTMLDivElement;
 let camera, scene, renderer, controls;
 let controlsEnabled = false; // toggle freeze using space
-const clock = new THREE.Clock();
+let clock = new THREE.Clock(); // mutable clock allows reset
 
 // Declare materials globally
 let wireframeMaterial: THREE.MeshLambertMaterial;
@@ -16,6 +16,7 @@ let solidMaterial: THREE.MeshLambertMaterial;
 
 // Store mesh objects, e.g. icosahedrons, in a 3D array
 let meshGrid: THREE.LOD[][][];
+let currentMeshGroup = new THREE.Group();
 let meshGridHistory: THREE.Group[];
 let meshGridHistoryUpdateCount = 0;
 
@@ -36,8 +37,26 @@ export function main(xMax, yMax, zMax, numHistoricalStates, numMaterialDetailLev
     ];
     // ].slice(numMaterialDetailLevels);
     init(grid, geometry, numHistoricalStates);
-    animate();
+    AnimationLoop.start();
   });
+}
+
+export function clearGui() {
+  for (const g of meshGridHistory) {
+    removeObject3D(g);
+  }
+  removeObject3D(currentMeshGroup);
+  while (scene.children.length > 0) {
+    scene.remove(scene.children[0]);
+  }
+  renderer.render(scene, camera);
+  // Remove HTML element from document
+  container.remove();
+
+  meshGrid = [[[]]];
+  meshGridHistory = [];
+  meshGridHistoryUpdateCount = 0;
+  currentMeshGroup = new THREE.Group();
 }
 
 function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORICAL_STATES = 5) {
@@ -71,6 +90,7 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORIC
         lod.position.z = ((k) * 100);
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
+        currentMeshGroup.add(lod);
         scene.add(lod);
 
         // Store the LOD in the grid for later updates
@@ -161,11 +181,6 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-function animate() {
-  requestAnimationFrame(animate);
-  render();
-}
-
 function render() {
   if (controlsEnabled) {
     controls.update(clock.getDelta());
@@ -209,7 +224,7 @@ function updateIcosahedronStatesInScene(grid: number[][][]) {
   // Preserve mesh state history using THREE.Group objects for timesteps
   // Oldest historical state is discarded
   // Second oldest is assigned to the oldest index etc
-  const numHistoricalStatesKept = Math.min(meshGridHistoryUpdateCount, meshGridHistory.length);
+  const numHistoricalStatesKept = Math.min(meshGridHistoryUpdateCount, meshGridHistory.length - 1);
   for (let i = numHistoricalStatesKept; i > 0; i--) {
     meshGridHistory[i] = meshGridHistory[i - 1];
   }
@@ -274,3 +289,37 @@ function offsetHistoricalStatesInScene(grid: number[][][]) {
     }
   }
 }
+
+export const AnimationLoop = (() => {
+  let requestId: number | null = null;
+  let running = false;
+
+  function loop() {
+    if (!running) return;
+    render();
+    requestId = requestAnimationFrame(loop);
+  }
+
+  return {
+    start() {
+      if (!running) {
+        running = true;
+        loop();
+      }
+    },
+    stop() {
+      if (requestId !== null) {
+        cancelAnimationFrame(requestId);
+        requestId = null;
+      }
+      running = false;
+    },
+    reset() {
+      this.stop();
+      clock = new THREE.Clock();
+    },
+    isRunning() {
+      return running;
+    }
+  };
+})();
