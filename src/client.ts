@@ -7,7 +7,7 @@ const stateService = new StateServiceClient('http://localhost:8080', null, null)
 let stopSimulationFlag = false;
 
 
-export function initWorldState(xMax, yMax, zMax,) {
+export function initWorldState(xMax, yMax, zMax) {
 
   const request = new InitializeRequest();
   const dims = new GridDimensions();

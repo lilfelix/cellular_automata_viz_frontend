@@ -14,6 +14,7 @@ const NUM_DIMS = 14;
 const NUM_MATERIAL_DETAIL_LEVELS = 1;
 const NUM_SIM_LOOP_STEPS = 100000;
 const NUM_MILLISECONDS_SLEEP_PER_STEP = 400;
+const NUM_HISTORICAL_STATES = 5;
 
 // Attach functions to the global window object for HTML buttons
 (window as any).resetWorldState = () => {
@@ -40,4 +41,5 @@ const NUM_MILLISECONDS_SLEEP_PER_STEP = 400;
 );
 (window as any).stopSimulation = stopSimulation;
 
-main(NUM_DIMS, NUM_DIMS, NUM_DIMS, NUM_MATERIAL_DETAIL_LEVELS);
+main(NUM_DIMS, 1, 1, NUM_HISTORICAL_STATES, NUM_MATERIAL_DETAIL_LEVELS);
+// main(NUM_DIMS, NUM_DIMS, NUM_DIMS, NUM_MATERIAL_DETAIL_LEVELS);

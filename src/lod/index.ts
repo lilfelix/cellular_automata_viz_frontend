@@ -14,10 +14,12 @@ const clock = new THREE.Clock();
 let wireframeMaterial: THREE.MeshLambertMaterial;
 let solidMaterial: THREE.MeshLambertMaterial;
 
-// Store icosahedrons in a 3D array
-let icosahedronGrid: THREE.LOD[][][];
+// Store mesh objects, e.g. icosahedrons, in a 3D array
+let meshGrid: THREE.LOD[][][];
+let meshGridHistory: THREE.Group[];
+let meshGridHistoryUpdateCount = 0;
 
-export function main(xMax, yMax, zMax, numMaterialDetailLevels) {
+export function main(xMax, yMax, zMax, numHistoricalStates, numMaterialDetailLevels) {
   let grid: number[][][];
 
   const response: Promise<WorldStateResponse | void> = initWorldState(xMax, yMax, zMax);
@@ -27,18 +29,18 @@ export function main(xMax, yMax, zMax, numMaterialDetailLevels) {
     const geometry = [
       // [new THREE.IcosahedronGeometry(100, 16), 50],
       // [new THREE.IcosahedronGeometry(100, 8), 300],
-      [new THREE.BoxGeometry(100,100,100,1,1,1), 300],
+      [new THREE.BoxGeometry(100, 100, 100, 1, 1, 1), 300],
       // [new THREE.IcosahedronGeometry(100, 4), 1000],
       // [new THREE.IcosahedronGeometry(100, 2), 2000],
       // [new THREE.IcosahedronGeometry(100, 1), 8000],
     ];
     // ].slice(numMaterialDetailLevels);
-    init(grid, geometry);
+    init(grid, geometry, numHistoricalStates);
     animate();
   });
 }
 
-function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
+function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORICAL_STATES = 5) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
@@ -47,11 +49,12 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
     1: solidMaterial,
   }
 
-  icosahedronGrid = new Array(x_len);
+  meshGridHistory = Array.from({ length: NUM_HISTORICAL_STATES }, () => new THREE.Group());
+  meshGrid = new Array(x_len);
   for (let i = 0; i < x_len; i++) {
-    icosahedronGrid[i] = new Array(y_len);
+    meshGrid[i] = new Array(y_len);
     for (let j = 0; j < y_len; j++) {
-      icosahedronGrid[i][j] = new Array(z_len);
+      meshGrid[i][j] = new Array(z_len);
       for (let k = 0; k < z_len; k++) {
         const lod = new THREE.LOD();
 
@@ -63,31 +66,37 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][]) {
           lod.addLevel(mesh, geometry[l][1] as number);
         }
 
-        lod.position.x = ((i + 1) * 100); // Each cube side is 100 pixels
-        lod.position.y = ((j + 1) * 100);
-        lod.position.z = ((k + 1) * 100);
+        lod.position.x = ((i) * 100); // Each cube side is 100 pixels
+        lod.position.y = ((j) * 100);
+        lod.position.z = ((k) * 100);
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
         scene.add(lod);
-        // Show coordinates
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
 
         // Store the LOD in the grid for later updates
-        icosahedronGrid[i][j][k] = lod;
+        meshGrid[i][j][k] = lod;
+        for (let h = 0; h < NUM_HISTORICAL_STATES; h++) {
+          meshGridHistory[h].add(lod.clone(true));
+        }
       }
     }
   }
+  // Show coordinates
+  const axesHelper = new THREE.AxesHelper(100);
+  scene.add(axesHelper);
+
+  // Add historical states to scene
+  scene.add(...meshGridHistory);
 }
 
-function init(grid: number[][][] | undefined, geometry: any[][]) {
+function init(grid: number[][][] | undefined, geometry: any[][], numHistoricalStates = 5) {
   container = document.createElement('div');
   document.body.appendChild(container);
 
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
   camera.position.x = 1000;
   camera.position.y = 1000;
-  camera.position.z = 6000;
+  camera.position.z = 5000;
 
   scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x000000, 1, 20000);
@@ -103,10 +112,10 @@ function init(grid: number[][][] | undefined, geometry: any[][]) {
 
   // Initialize materials
   wireframeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
-  solidMaterial = new THREE.MeshLambertMaterial({ color: 0xff0000, wireframe: false });
+  solidMaterial = new THREE.MeshLambertMaterial({ color: 0xf1f1f1, wireframe: false, });
 
   if (grid) {
-    generateIcosahedronsFromGrid(geometry, grid);
+    generateIcosahedronsFromGrid(geometry, grid, numHistoricalStates);
   } else {
     throw new Error("Invalid grid!");
   }
@@ -141,7 +150,7 @@ function init(grid: number[][][] | undefined, geometry: any[][]) {
       controlsEnabled = !controlsEnabled;
       controls.enabled = controlsEnabled;
     }
-  }, {capture: true});
+  }, { capture: true });
 
   window.addEventListener('resize', onWindowResize);
 }
@@ -169,22 +178,96 @@ function render() {
   renderer.render(scene, camera);
 }
 
+function removeObject3D(object) {
+  if (!object) return;
+
+  // Remove children recursively
+  while (object.children.length > 0) {
+    removeObject3D(object.children[0]);
+  }
+
+  // Remove from parent
+  if (object.parent) object.parent.remove(object);
+
+  // Dispose geometry
+  if (object.geometry) object.geometry.dispose();
+
+  // Dispose materials (handle arrays for multi-material)
+  if (object.material) {
+    if (Array.isArray(object.material)) {
+      object.material.forEach(mat => mat.dispose());
+    } else {
+      object.material.dispose();
+    }
+  }
+}
+
 function updateIcosahedronStatesInScene(grid: number[][][]) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
+
+  // Preserve mesh state history using THREE.Group objects for timesteps
+  // Oldest historical state is discarded
+  // Second oldest is assigned to the oldest index etc
+  const numHistoricalStatesKept = Math.min(meshGridHistoryUpdateCount, meshGridHistory.length);
+  for (let i = numHistoricalStatesKept; i > 0; i--) {
+    meshGridHistory[i] = meshGridHistory[i - 1];
+  }
+  // Remove outdated historical state from scene and GPU memory
+  if (numHistoricalStatesKept === meshGridHistory.length) {
+    const oldestHistoricalStatesGroup: THREE.Group = meshGridHistory[meshGridHistory.length];
+    removeObject3D(oldestHistoricalStatesGroup);
+  }
+
+  meshGridHistory[0] = new THREE.Group();
   for (let i = 0; i < x_len; i++) {
     for (let j = 0; j < y_len; j++) {
       for (let k = 0; k < z_len; k++) {
-        const lod = icosahedronGrid[i][j][k];
-        const state = grid[i][j][k];
+        const lod = meshGrid[i][j][k];
+        console.log(`lod to be cloned for ${i} ${j} ${k} is ${lod}`);
 
+        // Save current state as most recent historical state before updating
+        meshGridHistory[0].add(lod.clone(true));
+
+        const state = grid[i][j][k];
         for (let l = 0; l < lod.levels.length; l++) {
           const mesh = lod.levels[l].object as THREE.Mesh;
           mesh.material = state === 1 ? solidMaterial : wireframeMaterial;
           mesh.material.needsUpdate = true; // ensure material updates
         }
       }
+    }
+  }
+  scene.add(meshGridHistory[0]);
+  offsetHistoricalStatesInScene(grid);
+
+  if (meshGridHistoryUpdateCount < meshGridHistory.length) {
+    meshGridHistoryUpdateCount += 1;
+  }
+}
+
+function offsetHistoricalStatesInScene(grid: number[][][]) {
+  const y_len = grid[0].length;
+  const z_len = grid[0][0].length;
+  const to3DIndex = (flat_index: number) => {
+    const x = Math.floor(flat_index / (y_len * z_len));
+    const y = Math.floor((flat_index % (y_len * z_len)) / z_len);
+    const z = flat_index % z_len;
+    return { x, y, z };
+  };
+
+  for (let i = 0; i < meshGridHistory.length; i++) {
+    const group = meshGridHistory[i];
+    const offset = (i + 1) * 100;
+    for (let j = 0; j < group.children.length; j++) {
+      const lod = group.children[j];
+      const { x, y, z } = to3DIndex(j);
+      lod.position.x = (x * 100); // Each cube side is 100 pixels
+      lod.position.y = (y * 100);
+      lod.position.z = (z * 100 + offset);
+      lod.updateMatrix();
+      lod.matrixAutoUpdate = false;
     }
   }
 }
