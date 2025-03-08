@@ -8,6 +8,7 @@ import { WorldStateResponse } from '../proto/generated/sim_server_pb';
 let container;
 let camera, scene, renderer, controls;
 let controlsEnabled = false; // toggle freeze using space
+let currentTarget: THREE.Vector3;
 const clock = new THREE.Clock();
 
 // Declare materials globally
@@ -120,12 +121,29 @@ function init(grid: number[][][] | undefined, numMaterialDetailLevels = 2) {
   controls = new FlyControls(camera, renderer.domElement);
   controls.movementSpeed = 1000;
   controls.rollSpeed = Math.PI / 10;
+  // capture space key event BEFORE the controls,
+  // then recreate the controls -- this resets some
+  // internal fields used for damping, the only other
+  // option to do this is to change the source code
+  // of OrbitControls -- something that is strongly
+  // discouraged to do... note, that this code only
+  // works for canceling rotation, for panning you
+  // have to add some more code to restore position
+
+
   window.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {
+      if (controlsEnabled) {
+        controls.dispose();
+      } else {
+        controls = new FlyControls(camera, renderer.domElement);
+        controls.movementSpeed = 1000;
+        controls.rollSpeed = Math.PI / 10;
+      }
       controlsEnabled = !controlsEnabled;
       controls.enabled = controlsEnabled;
     }
-  });
+  }, {capture: true});
 
   window.addEventListener('resize', onWindowResize);
 }
