@@ -1,6 +1,8 @@
 # Cellular Automata visualized in 3D space 
 with fly controls!
 
+The frontend defined by this repo is intended to be used together with the backend in this repo:
+https://github.com/lilfelix/cellular_automata_viz_backend/tree/main/src
 
 ## Get started
 - Execute `npm i` to install project dependencies
@@ -62,28 +64,4 @@ grpcurl -d '{"dimensions":{"y_max":"10","z_max":"10","x_max":"10"}}' -plaintext 
 ```
 RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 ```
-
-## To read
-
-### WebGL
-- [ ] [MDN WebGL Tutorial](https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Getting_started_with_WebGL)
-- [ ] [An introduction to WebGL](https://dev.opera.com/articles/introduction-to-webgl-part-1/) : Written by Luz Caballero, published at dev.opera.com. This article addresses what WebGL is, explains how WebGL works (including the rendering pipeline concept), and introduces some WebGL libraries.   
-- [ ] [WebGL Fundamentals](https://webglfundamentals.org/)
-- [ ] [An intro to modern OpenGL](https://duriansoftware.com/joe/An-intro-to-modern-OpenGL.-Table-of-Contents.html): A series of nice articles about OpenGL written by Joe Groff, providing a clear introduction to OpenGL from its history to the important graphics pipeline concept, and also includes some examples to demonstrate how OpenGL works. If you have no idea what OpenGL is, this is a good place to start.
-
-
-### Three.js
-- [x] [Level of Detail](https://threejs.org/examples/webgl_lod.html)
-- [x] [Camera panning objects in space](https://threejs.org/examples/#webgl_camera)
-- [ ] [Anvaka's very cool graph visualizations](https://anvaka.github.io/pm/#/?_k=rn1q6d)
-
-## Inspiration to this project 
-
-### TensorSpace
-- [x] [TensorSpace](https://github.com/tensorspace-team/tensorspace): TensorSpace is a neural network 3D visualization framework built using TensorFlow.js, Three.js and Tween.js. TensorSpace provides Keras-like APIs to build deep learning layers, load pre-trained models, and generate a 3D visualization in the browser.
-
-### D3.js
-- [ ] [Data-Driven Documents](https://d3js.org/) with a cool [Obama bugdet vizualization in 2D](https://archive.nytimes.com/www.nytimes.com/interactive/2012/02/13/us/politics/2013-budget-proposal-graphic.html)
-
-
 
