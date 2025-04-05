@@ -1,15 +1,20 @@
-with fly controls!
+## What is this? 
+
+An app to visualize [cellular automata](https://en.wikipedia.org/wiki/Cellular_automaton) using THREE.js with fly controls!
 
 ![GIF](https://github.com/lilfelix/cellular_automata_viz_frontend/blob/gif-upload/cell_automata_3D_viz.gif)
 
-The frontend defined by this repo is intended to be used together with the backend in this repo:
-https://github.com/lilfelix/cellular_automata_viz_backend/tree/main/src
+The minimal frontend communicates over [gRPC](https://grpc.io/) with a [backend](https://en.wikipedia.org/wiki/Cellular_automaton) implemented in C++
 
 ## Get started
+This frontend is intended to be used together with an accompanying [backend repo](https://en.wikipedia.org/wiki/Cellular_automaton).  
+Therefore, you'll need to clone and build the backend's C++ code to get the app working. Here are the required steps
+
 - Execute `npm i` to install project dependencies
 - Clone the [backend repo](https://github.com/lilfelix/cellular_automata_viz_backend/tree/main/src) which hosts the protobuf files used by this frontend
     - Create symbolic link: `ln -s /path/to/cellular_automata_viz_backend/proto $PWD/src/proto`
     - Compile the protobuf message definitions into .js classes as descrined in [Proto section](#proto) below
+    - Compile the C++ code (requires cmake and conan)
 - Install [envoy proxy](https://www.envoyproxy.io/) to allow gRPC communication btw frontend and backend
 - Start an [envoy proxy](https://www.envoyproxy.io/) server from the root of this repo: `envoy -c $PWD/envoy.yaml`
 - Start automatic transpilation of .ts frontend changes: `npm run start`. Equivalent to `webpack --watch`
