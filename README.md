@@ -1,5 +1,6 @@
-<file name=2 path=/Users/felix/Code/cellular_automata_viz_frontend/README.md># Cellular Automata visualized in 3D space 
 with fly controls!
+
+![GIF](https://github.com/lilfelix/cellular_automata_viz_frontend/blob/gif-upload/cell_automata_3D_viz.gif)
 
 The frontend defined by this repo is intended to be used together with the backend in this repo:
 https://github.com/lilfelix/cellular_automata_viz_backend/tree/main/src
@@ -68,5 +69,3 @@ grpcurl -d '{"dimensions":{"y_max":"10","z_max":"10","x_max":"10"}}' -plaintext 
 # generate a random rule 
 RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 ```
-
-</file>
