@@ -10,7 +10,7 @@ import { handleInputField, stepWorldStateForward, runSimulationLoop, stopSimulat
 import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
 
-const RULE = "ZwH77PdKcK5IwoRFbxFeEg=="; // Overridable via GUI
+const RULE = "AAABAAEAAAABAAEAAAAAAA=="; // Rule 30. Overridable via GUI
 const NUM_DIMS = 100;
 const NUM_MATERIAL_DETAIL_LEVELS = 1;
 const NUM_SIM_LOOP_STEPS = 100000;

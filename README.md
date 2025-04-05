@@ -63,8 +63,9 @@ A proxy is needed to convert browser's HTTP1.1 request to gRPC servers HTTP2.0 r
 ```
 grpcurl -d '{"dimensions":{"y_max":"10","z_max":"10","x_max":"10"}}' -plaintext localhost:50051 sim_server.StateService/InitWorldState | head -n 20
 ```
-4. Generate a rule
+4. Generate a rule or use one that's known to be interesting e.g. wolfram's rule 30.
 ```
+# generate a random rule 
 RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 ```
 
