@@ -4,10 +4,10 @@ An app to visualize [cellular automata](https://en.wikipedia.org/wiki/Cellular_a
 
 ![GIF](https://github.com/lilfelix/cellular_automata_viz_frontend/blob/gif-upload/cell_automata_3D_viz.gif)
 
-The minimal frontend communicates over [gRPC](https://grpc.io/) with a [backend](https://en.wikipedia.org/wiki/Cellular_automaton) implemented in C++
+The minimal frontend communicates over [gRPC](https://grpc.io/) with a [backend](https://github.com/lilfelix/cellular_automata_viz_backend) implemented in C++
 
 ## Get started
-This frontend is intended to be used together with an accompanying [backend repo](https://en.wikipedia.org/wiki/Cellular_automaton).  
+This frontend is intended to be used together with an accompanying [backend repo](https://github.com/lilfelix/cellular_automata_viz_backend).  
 Therefore, you'll need to clone and build the backend's C++ code to get the app working. Here are the required steps
 
 - Execute `npm i` to install project dependencies
