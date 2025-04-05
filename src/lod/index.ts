@@ -14,6 +14,11 @@ let clock = new THREE.Clock(); // mutable clock allows reset
 let wireframeMaterial: THREE.MeshLambertMaterial;
 let solidMaterial: THREE.MeshLambertMaterial;
 
+// Show coordinates of object hovered over by mouse
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+const hoverLabel = document.getElementById('hover-label') as HTMLElement;
+
 // Store mesh objects, e.g. icosahedrons, in a 3D array
 let meshGrid: THREE.LOD[][][];
 let currentMeshGroup = new THREE.Group();
@@ -63,6 +68,7 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORIC
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
+  const origin_offset = new THREE.Vector3(-x_len / 2, -y_len / 2, -z_len / 2).multiplyScalar(100);
   const bitToMaterial = {
     0: wireframeMaterial,
     1: solidMaterial,
@@ -85,9 +91,10 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORIC
           lod.addLevel(mesh, geometry[l][1] as number);
         }
 
-        lod.position.x = ((i) * 100); // Each cube side is 100 pixels
-        lod.position.y = ((j) * 100);
-        lod.position.z = ((k) * 100);
+        lod.position.x = (i * 100); // Each cube side is 100 pixels
+        lod.position.y = (j * 100);
+        lod.position.z = (k * 100);
+        lod.position.add(origin_offset);
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
         currentMeshGroup.add(lod);
@@ -109,26 +116,35 @@ function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORIC
   scene.add(...meshGridHistory);
 }
 
-function init(grid: number[][][] | undefined, geometry: any[][], numHistoricalStates = 5) {
+function init(grid: number[][][], geometry: any[][], numHistoricalStates = 5) {
   container = document.createElement('div');
   document.body.appendChild(container);
 
-  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 15000);
-  camera.position.x = 1000;
-  camera.position.y = 1000;
-  camera.position.z = 5000;
+  const xMax = grid.length;
+  const yMax = grid[0]?.length ?? 1;
+  const zMax = grid[0]?.[0]?.length ?? 1;
+
+  // Compute a suitable distance from the center, scaled by grid size
+  const maxDim = Math.max(xMax, yMax, zMax);
+  const distance = maxDim * 2.5;
+  const center = new THREE.Vector3(0, 0, 0);
+
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
+  const offsetDirection = new THREE.Vector3(1, 1, 1).normalize();
+  const cameraDistance = maxDim * 100; // Use world units matching cube size
+  camera.position.copy(offsetDirection.multiplyScalar(cameraDistance));
+  camera.lookAt(center);
 
   scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x000000, 1, 20000);
+  scene.fog = new THREE.Fog(0x000000, 1, distance * 1000);
 
-  const pointLight = new THREE.PointLight(0xff2200);
-  pointLight.position.set(0, 0, 0);
+  const pointLight = new THREE.PointLight(0xff2200, 1, 0);
+  pointLight.position.set(center.x, center.y, center.z);
   scene.add(pointLight);
 
-  const dirLight = new THREE.DirectionalLight(0xffffff);
-  dirLight.position.set(0, 0, 1).normalize();
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(1, 1, 1).normalize();
   scene.add(dirLight);
-
 
   // Initialize materials
   wireframeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
@@ -172,6 +188,13 @@ function init(grid: number[][][] | undefined, geometry: any[][], numHistoricalSt
   }, { capture: true });
 
   window.addEventListener('resize', onWindowResize);
+
+  // Get coordinates of mouse
+  window.addEventListener('mousemove', (event) => {
+    // Convert screen to NDC [-1, 1]
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  });
 }
 
 function onWindowResize() {
@@ -261,6 +284,7 @@ function updateIcosahedronStatesInScene(grid: number[][][]) {
 }
 
 function offsetHistoricalStatesInScene(grid: number[][][]) {
+  const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
   const to3DIndex = (flat_index: number) => {
@@ -270,23 +294,38 @@ function offsetHistoricalStatesInScene(grid: number[][][]) {
     return { x, y, z };
   };
 
+  const origin_offset = new THREE.Vector3(-x_len / 2, -y_len / 2, -z_len / 2).multiplyScalar(100);
   for (let i = 0; i < meshGridHistory.length; i++) {
     const group = meshGridHistory[i];
-    const offset = (i + 1) * 100;
+    const neighbor_offset = (i + 1) * 100;
     for (let j = 0; j < group.children.length; j++) {
       const lod = group.children[j];
       if (i < meshGridHistoryUpdateCount) {
         lod.visible = true;
         const { x, y, z } = to3DIndex(j);
         lod.position.x = (x * 100); // Each cube side is 100 pixels
-        lod.position.y = (y * 100 + offset);
-        lod.position.z = (z * 100 - offset);
+        lod.position.y = (y * 100 + neighbor_offset);
+        lod.position.z = (z * 100 - neighbor_offset);
+        lod.position.add(origin_offset);
         lod.updateMatrix();
         lod.matrixAutoUpdate = false;
       } else {
         lod.visible = false;
       }
     }
+  }
+}
+
+function getMouseHoverObjects() {
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(scene.children);
+
+  if (intersects.length > 0) {
+    // point returns the position relative to its parent, e.g. a THREE.Group.
+    const { x, y, z } = intersects[0].point;
+    hoverLabel.innerText = `Hover: x=${x.toFixed(2)} y=${y.toFixed(2)} z=${z.toFixed(2)}`;
+  } else {
+    hoverLabel.innerText = `Hover: -`;
   }
 }
 
@@ -297,6 +336,7 @@ export const AnimationLoop = (() => {
   function loop() {
     if (!running) return;
     render();
+    getMouseHoverObjects();
     requestId = requestAnimationFrame(loop);
   }
 
