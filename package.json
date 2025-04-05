@@ -1,7 +1,7 @@
 {
-  "name": "social-fabric",
+  "name": "cellular_automata_viz",
   "version": "1.0.0",
-  "description": "Social fabric neural network visualization",
+  "description": "Cellular automata visualization",
   "main": "js/index.js",
   "dependencies": {
     "@grpc/grpc-js": "^1.11.3",
@@ -29,12 +29,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lilfelix/Social-fabric.git"
+    "url": "git+https://github.com/lilfelix/cellular_automata_viz_frontend.git"
   },
   "author": "Felix Liljefors",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/lilfelix/Social-fabric/issues"
+    "url": "https://github.com/lilfelix/cellular_automata_viz_frontend/issues"
   },
-  "homepage": "https://github.com/lilfelix/Social-fabric#readme"
+  "homepage": "https://github.com/lilfelix/cellular_automata_viz_frontend#readme"
 }

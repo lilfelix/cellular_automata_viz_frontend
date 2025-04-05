@@ -1,4 +1,4 @@
-# Cellular Automata visualized in 3D space 
+<file name=2 path=/Users/felix/Code/cellular_automata_viz_frontend/README.md># Cellular Automata visualized in 3D space 
 with fly controls!
 
 The frontend defined by this repo is intended to be used together with the backend in this repo:
@@ -6,10 +6,13 @@ https://github.com/lilfelix/cellular_automata_viz_backend/tree/main/src
 
 ## Get started
 - Execute `npm i` to install project dependencies
+- Clone the [backend repo](https://github.com/lilfelix/cellular_automata_viz_backend/tree/main/src) which hosts the protobuf files used by this frontend
+    - Create symbolic link: `ln -s /path/to/cellular_automata_viz_backend/proto $PWD/src/proto`
+    - Compile the protobuf message definitions into .js classes as descrined in [Proto section](#proto) below
 - Install [envoy proxy](https://www.envoyproxy.io/) to allow gRPC communication btw frontend and backend
 - Start an [envoy proxy](https://www.envoyproxy.io/) server from the root of this repo: `envoy -c $PWD/envoy.yaml`
 - Start automatic transpilation of .ts frontend changes: `npm run start`. Equivalent to `webpack --watch`
-- Open a browser and paste `/path/to/index.html`, where `index.html` is at the root of this repo
+- Open a browser and paste `$PWD/index.html`, where `index.html` is at the root of this repo
 
 Now the frontend should be up!🚀 Navigation controls:  
 
@@ -24,7 +27,7 @@ Now the frontend should be up!🚀 Navigation controls:
 
 ## Proto
 
-Run the following command to generate the proto messages and the gRPC service client stub from your .proto definitions:
+Run the following command to generate the protobuf classes from message definitions, as well as the gRPC service client stub:
 ```bash
 export PATH=$PATH:$PWD/node_modules/protoc-gen-js/bin
 protoc --js_out=$PWD/src/proto/generated --proto_path=$PWD/src/proto/ $PWD/src/proto/sim_server.proto
@@ -65,3 +68,4 @@ grpcurl -d '{"dimensions":{"y_max":"10","z_max":"10","x_max":"10"}}' -plaintext 
 RULE=$(echo -n 0123456789abcdef0123456789abcdef | xxd -r -p | base64);
 ```
 
+</file>
