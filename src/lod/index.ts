@@ -4,6 +4,7 @@ import { initWorldState } from '../client';
 import { deserializeGridFromProto, mailbox } from '../mailbox';
 import { WorldStateResponse } from '../proto/generated/sim_server_pb';
 
+const cubeLen = 50; // Cube side length
 let container: HTMLDivElement;
 let camera, scene, renderer, controls;
 let controlsEnabled = false; // toggle freeze using space
@@ -35,12 +36,12 @@ export function main(xMax, yMax, zMax, numHistoricalStates, numMaterialDetailLev
     grid = deserializeGridFromProto(r as WorldStateResponse);
 
     const geometry = [
-      // [new THREE.IcosahedronGeometry(100, 16), 50],
-      // [new THREE.IcosahedronGeometry(100, 8), 300],
-      [new THREE.BoxGeometry(100, 100, 100, 1, 1, 1), 300],
-      // [new THREE.IcosahedronGeometry(100, 4), 1000],
-      // [new THREE.IcosahedronGeometry(100, 2), 2000],
-      // [new THREE.IcosahedronGeometry(100, 1), 8000],
+      // [new THREE.IcosahedronGeometry(cubeLen, 16), 50],
+      // [new THREE.IcosahedronGeometry(cubeLen, 8), 300],
+      [new THREE.BoxGeometry(cubeLen, cubeLen, cubeLen, 1, 1, 1), 300],
+      // [new THREE.IcosahedronGeometry(cubeLen, 4), 1000],
+      // [new THREE.IcosahedronGeometry(cubeLen, 2), 2000],
+      // [new THREE.IcosahedronGeometry(cubeLen, 1), 8000],
     ];
     // ].slice(numMaterialDetailLevels);
     init(grid, geometry, numHistoricalStates);
@@ -98,9 +99,9 @@ function generateInstancedGrid(geometry: any[][], grid: number[][][], NUM_HISTOR
     for (let j = 0; j < y_len; j++) {
       for (let k = 0; k < z_len; k++) {
         dummy.position.set(
-          (i - x_len / 2) * 100,
-          (j - y_len / 2) * 100,
-          (k - z_len / 2) * 100
+          (i - x_len / 2) * cubeLen,
+          (j - y_len / 2) * cubeLen,
+          (k - z_len / 2) * cubeLen,
         );
         dummy.updateMatrix();
         if (grid[i][j][k] === 1) {
@@ -120,7 +121,7 @@ function generateInstancedGrid(geometry: any[][], grid: number[][][], NUM_HISTOR
   currentInstancedMeshWireframe = instancedMeshWireframe;
 
   // Show coordinate axes
-  const axesHelper = new THREE.AxesHelper(100);
+  const axesHelper = new THREE.AxesHelper(cubeLen);
   scene.add(axesHelper);
 
   // Add historical states to scene. They're initialized as null
@@ -144,7 +145,7 @@ function init(grid: number[][][], geometry: any[][], numHistoricalStates = 5) {
 
   camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 20000);
   const offsetDirection = new THREE.Vector3(1, 1, 1).normalize();
-  const cameraDistance = maxDim * 100; // Use world units matching cube size
+  const cameraDistance = maxDim * cubeLen; // Use world units matching cube size
   camera.position.copy(offsetDirection.multiplyScalar(cameraDistance));
   camera.lookAt(center);
 
@@ -283,9 +284,9 @@ function updateInstancedGrid(grid: number[][][]) {
     for (let j = 0; j < y_len; j++) {
       for (let k = 0; k < z_len; k++) {
         dummy.position.set(
-          (i - x_len / 2) * 100,
-          (j - y_len / 2) * 100,
-          (k - z_len / 2) * 100
+          (i - x_len / 2) * cubeLen,
+          (j - y_len / 2) * cubeLen,
+          (k - z_len / 2) * cubeLen,
         );
         dummy.updateMatrix();
         if (grid[i][j][k] === 1) {
@@ -312,8 +313,7 @@ function updateInstancedGrid(grid: number[][][]) {
 
 function offsetHistoricalStatesInScene() {
   for (let i = 0; i < meshGridHistory.length; i++) {
-    const neighbor_offset = 100;
-    const vector_offset = new THREE.Vector3(0, neighbor_offset, -1 * neighbor_offset);
+    const vector_offset = new THREE.Vector3(0, cubeLen, -1 * cubeLen);
     const { solid, wireframe } = meshGridHistory[i];
     solid?.position.add(vector_offset);
     wireframe?.position.add(vector_offset);

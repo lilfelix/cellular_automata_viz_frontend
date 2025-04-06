@@ -1,11 +1,5 @@
-// src/index.ts
-
-// Import your main application code
-import './lod/index.ts'; // Adjust the path if necessary
-
+import './lod/index.ts';
 import { main, clearGui, AnimationLoop } from './lod/index';
-
-// Import client functions
 import { handleInputField, stepWorldStateForward, runSimulationLoop, stopSimulation } from './client';
 import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
@@ -45,7 +39,6 @@ const NUM_HISTORICAL_STATES = 100;
 (window as any).handleInputField = (value) => {
     handleInputField((window as any).worldStateId, value);
 };
-// TODO: display current rule in GUI
 (window as any).rule = RULE;
 
 main(NUM_DIMS, 1, 1, NUM_HISTORICAL_STATES, NUM_MATERIAL_DETAIL_LEVELS);
