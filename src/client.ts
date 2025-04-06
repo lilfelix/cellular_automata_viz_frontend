@@ -4,7 +4,7 @@ import { InitializeRequest, GridDimensions, StepRequest, WorldStateResponse, Upd
 import { mailbox } from './mailbox';
 
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
-let stopSimulationFlag = false;
+let shouldRunSimulationLoop = false;
 
 export function initWorldState(xMax, yMax, zMax) {
   const request = new InitializeRequest();
@@ -88,9 +88,9 @@ export async function runSimulationLoop(worldStateId: number, rule: string, numS
   request.setNumSteps(numSteps);
   request.setRule(rule);
 
+  shouldRunSimulationLoop = true;
   for (let i = 0; i < numSteps; i++) {
-    if (stopSimulationFlag) {
-      stopSimulationFlag = false;
+    if (!shouldRunSimulationLoop) {
       break;
     }
     await new Promise(r => setTimeout(r, stepSleepMs));
@@ -107,5 +107,5 @@ export async function runSimulationLoop(worldStateId: number, rule: string, numS
 
 export function stopSimulation() {
   console.log("Stopping simulation...");
-  stopSimulationFlag = true;
+  shouldRunSimulationLoop = false;
 }
