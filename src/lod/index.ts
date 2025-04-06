@@ -1,4 +1,3 @@
-import { BufferGeometry } from 'three';
 import * as THREE from 'three';
 import { FlyControls } from './FlyControls';
 import { initWorldState } from '../client';
@@ -11,8 +10,11 @@ let controlsEnabled = false; // toggle freeze using space
 let clock = new THREE.Clock(); // mutable clock allows reset
 
 // Declare materials globally
-let wireframeMaterial: THREE.MeshLambertMaterial;
-let solidMaterial: THREE.MeshLambertMaterial;
+const wireframeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
+const solidMaterial = new THREE.MeshLambertMaterial({ color: 0xf1f1f1, wireframe: false, });
+
+let currentInstancedMeshSolid: THREE.InstancedMesh;
+let currentInstancedMeshWireframe: THREE.InstancedMesh;
 
 // Show coordinates of object hovered over by mouse
 const raycaster = new THREE.Raycaster();
@@ -20,9 +22,9 @@ const mouse = new THREE.Vector2();
 const hoverLabel = document.getElementById('hover-label') as HTMLElement;
 
 // Store mesh objects, e.g. icosahedrons, in a 3D array
-let meshGrid: THREE.LOD[][][];
-let currentMeshGroup = new THREE.Group();
-let meshGridHistory: THREE.Group[];
+type InstancedMesh = THREE.InstancedMesh<THREE.BufferGeometry, THREE.Material | THREE.Material[]>;
+type InstancedMeshTuple = { solid: InstancedMesh; wireframe: InstancedMesh };
+let meshGridHistory: InstancedMeshTuple[];
 let meshGridHistoryUpdateCount = 0;
 
 export function main(xMax, yMax, zMax, numHistoricalStates, numMaterialDetailLevels) {
@@ -47,73 +49,84 @@ export function main(xMax, yMax, zMax, numHistoricalStates, numMaterialDetailLev
 }
 
 export function clearGui() {
-  for (const g of meshGridHistory) {
-    removeObject3D(g);
+  for (const { solid, wireframe } of meshGridHistory) {
+    removeInstancedMesh(solid);
+    removeInstancedMesh(wireframe);
   }
-  removeObject3D(currentMeshGroup);
-  while (scene.children.length > 0) {
+  removeInstancedMesh(currentInstancedMeshSolid);
+  removeInstancedMesh(currentInstancedMeshWireframe);
+  while (scene.children?.length > 0) {
     scene.remove(scene.children[0]);
   }
   renderer.render(scene, camera);
   // Remove HTML element from document
   container.remove();
 
-  meshGrid = [[[]]];
   meshGridHistory = [];
   meshGridHistoryUpdateCount = 0;
-  currentMeshGroup = new THREE.Group();
 }
 
-function generateIcosahedronsFromGrid(geometry, grid: number[][][], NUM_HISTORICAL_STATES = 5) {
+function generateInstancedGrid(geometry: any[][], grid: number[][][], NUM_HISTORICAL_STATES = 5) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
-  const origin_offset = new THREE.Vector3(-x_len / 2, -y_len / 2, -z_len / 2).multiplyScalar(100);
-  const bitToMaterial = {
-    0: wireframeMaterial,
-    1: solidMaterial,
-  }
 
-  meshGridHistory = Array.from({ length: NUM_HISTORICAL_STATES }, () => new THREE.Group());
-  meshGrid = new Array(x_len);
+  let solidCount = 0, wireframeCount = 0;
   for (let i = 0; i < x_len; i++) {
-    meshGrid[i] = new Array(y_len);
     for (let j = 0; j < y_len; j++) {
-      meshGrid[i][j] = new Array(z_len);
       for (let k = 0; k < z_len; k++) {
-        const lod = new THREE.LOD();
-
-        for (let l = 0; l < geometry.length; l++) {
-          const mesh = new THREE.Mesh(geometry[l][0] as BufferGeometry, bitToMaterial[grid[i][j][k]]);
-          mesh.scale.set(1.0, 1.0, 1.0); // Don't apply scale change to mesh
-          mesh.updateMatrix();
-          mesh.matrixAutoUpdate = false;
-          lod.addLevel(mesh, geometry[l][1] as number);
-        }
-
-        lod.position.x = (i * 100); // Each cube side is 100 pixels
-        lod.position.y = (j * 100);
-        lod.position.z = (k * 100);
-        lod.position.add(origin_offset);
-        lod.updateMatrix();
-        lod.matrixAutoUpdate = false;
-        currentMeshGroup.add(lod);
-        scene.add(lod);
-
-        // Store the LOD in the grid for later updates
-        meshGrid[i][j][k] = lod;
-        for (let h = 0; h < NUM_HISTORICAL_STATES; h++) {
-          meshGridHistory[h].add(lod.clone(true));
+        if (grid[i][j][k] === 1) {
+          solidCount++;
+        } else {
+          wireframeCount++;
         }
       }
     }
   }
-  // Show coordinates
+
+  const instancedMeshSolid = new THREE.InstancedMesh(geometry[0][0], solidMaterial, solidCount);
+  const instancedMeshWireframe = new THREE.InstancedMesh(geometry[0][0], wireframeMaterial, wireframeCount);
+
+  meshGridHistory = Array.from({ length: NUM_HISTORICAL_STATES }, () => ({
+    solid: null as any as THREE.InstancedMesh,
+    wireframe: null as any as THREE.InstancedMesh,
+  }));
+
+  const dummy = new THREE.Object3D();
+  let solidIndex = 0, wireframeIndex = 0;
+  for (let i = 0; i < x_len; i++) {
+    for (let j = 0; j < y_len; j++) {
+      for (let k = 0; k < z_len; k++) {
+        dummy.position.set(
+          (i - x_len / 2) * 100,
+          (j - y_len / 2) * 100,
+          (k - z_len / 2) * 100
+        );
+        dummy.updateMatrix();
+        if (grid[i][j][k] === 1) {
+          instancedMeshSolid.setMatrixAt(solidIndex++, dummy.matrix);
+        } else {
+          instancedMeshWireframe.setMatrixAt(wireframeIndex++, dummy.matrix);
+        }
+      }
+    }
+  }
+
+  instancedMeshSolid.instanceMatrix.needsUpdate = true;
+  instancedMeshWireframe.instanceMatrix.needsUpdate = true;
+
+  // These will be added to scene on first update (when receiving initial state from backend)
+  currentInstancedMeshSolid = instancedMeshSolid;
+  currentInstancedMeshWireframe = instancedMeshWireframe;
+
+  // Show coordinate axes
   const axesHelper = new THREE.AxesHelper(100);
   scene.add(axesHelper);
 
-  // Add historical states to scene
-  scene.add(...meshGridHistory);
+  // Add historical states to scene. They're initialized as null
+  for (const { solid, wireframe } of meshGridHistory) {
+    if (solid && wireframe) scene.add(solid, wireframe);
+  }
 }
 
 function init(grid: number[][][], geometry: any[][], numHistoricalStates = 5) {
@@ -146,12 +159,8 @@ function init(grid: number[][][], geometry: any[][], numHistoricalStates = 5) {
   dirLight.position.set(1, 1, 1).normalize();
   scene.add(dirLight);
 
-  // Initialize materials
-  wireframeMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff, wireframe: true });
-  solidMaterial = new THREE.MeshLambertMaterial({ color: 0xf1f1f1, wireframe: false, });
-
   if (grid) {
-    generateIcosahedronsFromGrid(geometry, grid, numHistoricalStates);
+    generateInstancedGrid(geometry, grid, numHistoricalStates);
   } else {
     throw new Error("Invalid grid!");
   }
@@ -210,109 +219,104 @@ function render() {
   }
   if (mailbox.hasNewState) {
     const newGrid = mailbox.consumeNewState();
-    updateIcosahedronStatesInScene(newGrid as number[][][]);
+    updateInstancedGrid(newGrid as number[][][]);
   }
   renderer.render(scene, camera);
 }
 
-function removeObject3D(object) {
-  if (!object) return;
-
-  // Remove children recursively
-  while (object.children.length > 0) {
-    removeObject3D(object.children[0]);
-  }
+function removeInstancedMesh(mesh: THREE.InstancedMesh, dispose = false) {
+  if (!mesh) return;
 
   // Remove from parent
-  if (object.parent) object.parent.remove(object);
+  if (mesh.parent) mesh.parent.remove(mesh);
 
   // Dispose geometry
-  if (object.geometry) object.geometry.dispose();
+  if (mesh.geometry && dispose) mesh.geometry.dispose();
 
   // Dispose materials (handle arrays for multi-material)
-  if (object.material) {
-    if (Array.isArray(object.material)) {
-      object.material.forEach(mat => mat.dispose());
+  if (mesh.material && dispose) {
+    if (Array.isArray(mesh.material)) {
+      mesh.material.forEach(mat => mat.dispose());
     } else {
-      object.material.dispose();
+      mesh.material.dispose();
     }
   }
 }
 
-function updateIcosahedronStatesInScene(grid: number[][][]) {
+function updateInstancedGrid(grid: number[][][]) {
   const x_len = grid.length;
   const y_len = grid[0].length;
   const z_len = grid[0][0].length;
 
-  // Preserve mesh state history using THREE.Group objects for timesteps
-  // Oldest historical state is discarded
-  // Second oldest is assigned to the oldest index etc
-  const numHistoricalStatesKept = Math.min(meshGridHistoryUpdateCount, meshGridHistory.length - 1);
-  for (let i = numHistoricalStatesKept; i > 0; i--) {
-    meshGridHistory[i] = meshGridHistory[i - 1];
-  }
-  // Remove outdated historical state from scene and GPU memory
-  if (numHistoricalStatesKept === meshGridHistory.length) {
-    const oldestHistoricalStatesGroup: THREE.Group = meshGridHistory[meshGridHistory.length];
-    removeObject3D(oldestHistoricalStatesGroup);
+  // Add current state as most recent historical snapshot
+  meshGridHistory.unshift({
+    solid: currentInstancedMeshSolid,
+    wireframe: currentInstancedMeshWireframe,
+  });
+  const removed = meshGridHistory.pop();
+  if (removed) {
+    removeInstancedMesh(removed.solid);
+    removeInstancedMesh(removed.wireframe);
   }
 
-  meshGridHistory[0] = new THREE.Group();
+  offsetHistoricalStatesInScene();
+
+  let solidCount = 0, wireframeCount = 0;
   for (let i = 0; i < x_len; i++) {
     for (let j = 0; j < y_len; j++) {
       for (let k = 0; k < z_len; k++) {
-        const lod = meshGrid[i][j][k];
-
-        // Save current state as most recent historical state before updating
-        meshGridHistory[0].add(lod.clone(true));
-
-        const state = grid[i][j][k];
-        for (let l = 0; l < lod.levels.length; l++) {
-          const mesh = lod.levels[l].object as THREE.Mesh;
-          mesh.material = state === 1 ? solidMaterial : wireframeMaterial;
-          mesh.material.needsUpdate = true; // ensure material updates
+        if (grid[i][j][k] === 1) {
+          solidCount++;
+        } else {
+          wireframeCount++;
         }
       }
     }
   }
-  scene.add(meshGridHistory[0]);
-  offsetHistoricalStatesInScene(grid);
 
-  if (meshGridHistoryUpdateCount < meshGridHistory.length) {
-    meshGridHistoryUpdateCount += 1;
-  }
-}
+  const newSolidMesh = new THREE.InstancedMesh(currentInstancedMeshSolid.geometry, solidMaterial, solidCount);
+  const newWireframeMesh = new THREE.InstancedMesh(currentInstancedMeshWireframe.geometry, wireframeMaterial, wireframeCount);
 
-function offsetHistoricalStatesInScene(grid: number[][][]) {
-  const x_len = grid.length;
-  const y_len = grid[0].length;
-  const z_len = grid[0][0].length;
-  const to3DIndex = (flat_index: number) => {
-    const x = Math.floor(flat_index / (y_len * z_len));
-    const y = Math.floor((flat_index % (y_len * z_len)) / z_len);
-    const z = flat_index % z_len;
-    return { x, y, z };
-  };
-
-  const origin_offset = new THREE.Vector3(-x_len / 2, -y_len / 2, -z_len / 2).multiplyScalar(100);
-  for (let i = 0; i < meshGridHistory.length; i++) {
-    const group = meshGridHistory[i];
-    const neighbor_offset = (i + 1) * 100;
-    for (let j = 0; j < group.children.length; j++) {
-      const lod = group.children[j];
-      if (i < meshGridHistoryUpdateCount) {
-        lod.visible = true;
-        const { x, y, z } = to3DIndex(j);
-        lod.position.x = (x * 100); // Each cube side is 100 pixels
-        lod.position.y = (y * 100 + neighbor_offset);
-        lod.position.z = (z * 100 - neighbor_offset);
-        lod.position.add(origin_offset);
-        lod.updateMatrix();
-        lod.matrixAutoUpdate = false;
-      } else {
-        lod.visible = false;
+  const dummy = new THREE.Object3D();
+  let solidIndex = 0, wireframeIndex = 0;
+  for (let i = 0; i < x_len; i++) {
+    for (let j = 0; j < y_len; j++) {
+      for (let k = 0; k < z_len; k++) {
+        dummy.position.set(
+          (i - x_len / 2) * 100,
+          (j - y_len / 2) * 100,
+          (k - z_len / 2) * 100
+        );
+        dummy.updateMatrix();
+        if (grid[i][j][k] === 1) {
+          newSolidMesh.setMatrixAt(solidIndex++, dummy.matrix);
+        } else {
+          newWireframeMesh.setMatrixAt(wireframeIndex++, dummy.matrix);
+        }
       }
     }
+  }
+
+  newSolidMesh.count = solidCount;
+  newSolidMesh.instanceMatrix.needsUpdate = true;
+  newSolidMesh.material.needsUpdate = true;
+  newWireframeMesh.count = wireframeCount;
+  newWireframeMesh.instanceMatrix.needsUpdate = true;
+  newWireframeMesh.material.needsUpdate = true;
+
+  currentInstancedMeshSolid = newSolidMesh;
+  currentInstancedMeshWireframe = newWireframeMesh;
+
+  scene.add(currentInstancedMeshSolid, currentInstancedMeshWireframe);
+}
+
+function offsetHistoricalStatesInScene() {
+  for (let i = 0; i < meshGridHistory.length; i++) {
+    const neighbor_offset = 100;
+    const vector_offset = new THREE.Vector3(0, neighbor_offset, -1 * neighbor_offset);
+    const { solid, wireframe } = meshGridHistory[i];
+    solid?.position.add(vector_offset);
+    wireframe?.position.add(vector_offset);
   }
 }
 

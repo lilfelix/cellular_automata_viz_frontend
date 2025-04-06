@@ -9,7 +9,6 @@ import { main, clearGui, AnimationLoop } from './lod/index';
 import { handleInputField, stepWorldStateForward, runSimulationLoop, stopSimulation } from './client';
 import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
-
 const RULE = "AAABAAEAAAABAAEAAAAAAA=="; // Rule 30. Overridable via GUI
 const NUM_DIMS = 100;
 const NUM_MATERIAL_DETAIL_LEVELS = 1;
@@ -48,7 +47,6 @@ const NUM_HISTORICAL_STATES = 100;
 };
 // TODO: display current rule in GUI
 (window as any).rule = RULE;
-
 
 main(NUM_DIMS, 1, 1, NUM_HISTORICAL_STATES, NUM_MATERIAL_DETAIL_LEVELS);
 // main(NUM_DIMS, NUM_DIMS, NUM_DIMS, NUM_MATERIAL_DETAIL_LEVELS);

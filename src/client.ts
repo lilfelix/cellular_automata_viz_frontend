@@ -6,9 +6,7 @@ import { mailbox } from './mailbox';
 const stateService = new StateServiceClient('http://localhost:8080', null, null);
 let stopSimulationFlag = false;
 
-
 export function initWorldState(xMax, yMax, zMax) {
-
   const request = new InitializeRequest();
   const dims = new GridDimensions();
   dims.setXMax(xMax);
@@ -64,12 +62,14 @@ export function updateRule(worldStateId: number, ruleNumber: number) {
 export function handleInputField(worldStateId: number, str: string) {
   if (!isValidInput(str)) {
     window.alert(`Invalid input: ${str}. Has to be integer in range 0-255`);
+    return;
   }
   const ruleNumber = Number(str);
   updateRule(worldStateId, ruleNumber).then(ruleStr => {
     (window as any).rule = ruleStr;
-    if (!!document.getElementById("rule-container")) {
-      (document.getElementById("rule-container") as HTMLElement).innerText = `Rule: ${ruleNumber} a.k.a ${(window as any).rule}`;
+    const ruleContainer = document.getElementById('rule-container');
+    if (ruleContainer) {
+      ruleContainer.innerText = `Rule: ${ruleNumber} a.k.a ${(window as any).rule}`;
     }
   });
 }
@@ -82,13 +82,13 @@ function isValidInput(str: string) {
   return Number.isInteger(Number(str)) && Number(str) >= 0 && Number(str) <= maxInt;
 }
 
-export async function runSimulationLoop(worldStateId, rule, numSteps = 1, stepSleepMs = 400) {
+export async function runSimulationLoop(worldStateId: number, rule: string, numSteps = 1, stepSleepMs = 400) {
   const request = new StepRequest();
   request.setWorldStateId(worldStateId);
   request.setNumSteps(numSteps);
   request.setRule(rule);
 
-  for (let i = 0; i < numSteps; i += 1) {
+  for (let i = 0; i < numSteps; i++) {
     if (stopSimulationFlag) {
       stopSimulationFlag = false;
       break;
@@ -109,4 +109,3 @@ export function stopSimulation() {
   console.log("Stopping simulation...");
   stopSimulationFlag = true;
 }
-
