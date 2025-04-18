@@ -1,16 +1,19 @@
 import './lod/index.ts';
 import { main, clearGui, AnimationLoop } from './lod/index';
-import { handleInputField, stepWorldStateForward, runSimulationLoop, stopSimulation } from './client';
+import { ruleNumberOnChange, stepWorldStateForward, runSimulationLoop, stopSimulation, updateRuleInFrontend } from './client';
 import { WorldStateResponse } from './proto/generated/sim_server_pb';
 
-const RULE = "AAABAAEAAAABAAEAAAAAAA=="; // Rule 30. Overridable via GUI
+const DEFAULT_RULE = "AAABAAEAAAABAAEAAAAAAA=="; // Rule 30. Overridable via GUI
 const NUM_DIMS = 100;
 const NUM_MATERIAL_DETAIL_LEVELS = 1;
 const NUM_SIM_LOOP_STEPS = 100000;
-const NUM_MILLISECONDS_SLEEP_PER_STEP = 400;
+const NUM_MILLISECONDS_SLEEP_PER_STEP = 10;
 const NUM_HISTORICAL_STATES = 100;
 
+updateRuleInFrontend(30, DEFAULT_RULE);
+
 // Attach functions to the global window object for HTML buttons
+(window as any).rule = DEFAULT_RULE;
 (window as any).resetWorldState = () => {
     AnimationLoop.reset();
     const counterDiv = window.document.getElementById('counter');
@@ -31,15 +34,14 @@ const NUM_HISTORICAL_STATES = 100;
 };
 (window as any).runSimulationLoop = () => runSimulationLoop(
     (window as any).worldStateId,
-    RULE,
+    (window as any).rule,
     NUM_SIM_LOOP_STEPS,
     NUM_MILLISECONDS_SLEEP_PER_STEP
 );
 (window as any).stopSimulation = stopSimulation;
-(window as any).handleInputField = (value) => {
-    handleInputField((window as any).worldStateId, value);
+(window as any).ruleNumberOnChange = (value) => {
+    ruleNumberOnChange((window as any).worldStateId, value);
 };
-(window as any).rule = RULE;
 
 main(NUM_DIMS, 1, 1, NUM_HISTORICAL_STATES, NUM_MATERIAL_DETAIL_LEVELS);
 // main(NUM_DIMS, NUM_DIMS, NUM_DIMS, NUM_MATERIAL_DETAIL_LEVELS);

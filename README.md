@@ -18,12 +18,13 @@ Therefore, you'll need to clone and build the backend's C++ code to get the app 
 - Install [envoy proxy](https://www.envoyproxy.io/) to allow gRPC communication btw frontend and backend
 - Start an [envoy proxy](https://www.envoyproxy.io/) server from the root of this repo: `envoy -c $PWD/envoy.yaml`
 - Start automatic transpilation of .ts frontend changes: `npm run start`. Equivalent to `webpack --watch`
-- Open a browser and paste `$PWD/index.html`, where `index.html` is at the root of this repo
+- Open a browser and paste `/path/to/cellular_automata_viz_frontend/index.html`, where `index.html` is at the root of this repo
 
 Now the frontend should be up!🚀 Navigation controls:  
 
 - `<Space>` toggles freezing of GUI. Frozen mode allows using buttons like "Start", "Reset" etc
 - Use WASD + EQ controls to navigate in flight mode
+- Input a numeric rule in the top right corner and either click 'Step' or 'Run'
 
 ### Generating rules
 `openssl rand -hex 16 | xxd -r -p | base64`
